@@ -3,7 +3,7 @@ from PIL import Image
 from streamlit_cropper import st_cropper
 from Grider import get_row_image
 import cv2
-
+import json
 
 def regionSelection():
     st.header("Template SetUp")
@@ -55,7 +55,10 @@ def regionSelection():
             
             
             maxsize = (250,150)
-
+        #save the json file
+        
+        with open("meta.json", "w") as f:
+            f.write(json.dumps(ROI_list))
             
             if FILE_TYPE != "tif" and FILE_TYPE != "tiff":
                 # print(row_image)

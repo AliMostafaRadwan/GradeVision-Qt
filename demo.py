@@ -25,6 +25,9 @@ from qfluentwidgets import LineEdit, PushButton, SearchLineEdit, setTheme, Theme
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from CustomWebView import CustomWebView
 import subprocess
+from TableWidget import CustomTableWidget
+import json
+# from test import CustomTableWidget
 
 
 class Widget(QFrame):
@@ -52,6 +55,16 @@ class MainWindow(QWidget):
         subprocess.Popen(["streamlit", "run", "RegionSelection.py",'--server.headless','true'])
         
 
+class TableWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("My App")
+        self.layout = QVBoxLayout()
+        metadata = json.load(open('meta.json'))  # meta.json contains [[(x, y, width, height), num_columns, num_rows], ...
+        self.layout.addWidget(CustomTableWidget(metadata))
+        self.setLayout(self.layout)
+        self.setObjectName("TableInterface")
+        
 # ...
 class Window(FluentWindow):
 
@@ -60,7 +73,7 @@ class Window(FluentWindow):
 
         # create sub interface
         self.mainInterface = MainWindow()
-        self.homeInterface = Widget('Home Interface', self)
+        self.homeInterface = TableWidget()
         self.musicInterface = Widget('Music Interface', self)
         self.videoInterface = Widget('Video Interface', self)
         self.folderInterface = Widget('Folder Interface', self)
@@ -69,10 +82,6 @@ class Window(FluentWindow):
         self.albumInterface1 = Widget('Album Interface 1', self)
         self.albumInterface2 = Widget('Album Interface 2', self)
         self.albumInterface1_1 = Widget('Album Interface 1-1', self)
-        
-        # # Add a button in the middle of the homeInterface widget
-        self.homeButton = PrimaryPushButton('Home Button', self.homeInterface)
-        self.homeInterface.gridLayout.addWidget(self.homeButton, 1, 0, Qt.AlignCenter)
 
 
         self.initNavigation()
@@ -85,8 +94,8 @@ class Window(FluentWindow):
 
 
     def initNavigation(self):
-        self.addSubInterface(self.mainInterface, FIF.CALORIES, 'Main')
-        self.addSubInterface(self.homeInterface, FIF.HOME, 'Home')
+        self.addSubInterface(self.mainInterface, FIF.HOME, 'Main')
+        self.addSubInterface(self.homeInterface, FIF.DOCUMENT, 'Answer Key')
         
         self.addSubInterface(self.musicInterface, FIF.MUSIC, 'Music library')
         self.addSubInterface(self.videoInterface, FIF.VIDEO, 'Video library')
@@ -121,7 +130,7 @@ class Window(FluentWindow):
 
 
     def initWindow(self):
-        self.resize(900, 700)
+        self.resize(1000, 750)
         self.setWindowIcon(QIcon(':/qfluentwidgets/images/logo.png'))
         self.setWindowTitle('PyQt-Fluent-Widgets')
 

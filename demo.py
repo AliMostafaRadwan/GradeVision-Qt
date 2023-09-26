@@ -1,14 +1,14 @@
 # coding:utf-8
 import sys
 
-from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtCore import Qt, QUrl, QTimer
 from PyQt5.QtGui import QIcon, QDesktopServices, QImage, QPixmap
 from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout, QLabel, QVBoxLayout
 from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme, FluentWindow,
                             NavigationAvatarWidget, qrouter, SubtitleLabel, setFont, InfoBadge,
                             InfoBadgePosition)
 from qfluentwidgets import FluentIcon as FIF
-
+import time
 
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QAction, QGridLayout
@@ -20,7 +20,7 @@ from qfluentwidgets import (Action, DropDownPushButton, DropDownToolButton, Push
                             TransparentToggleToolButton, TransparentTogglePushButton, TransparentDropDownToolButton,
                             TransparentDropDownPushButton, PillPushButton, PillToolButton, setCustomStyleSheet,
                             CustomStyleSheet)
-from qfluentwidgets import LineEdit, PushButton, SearchLineEdit, setTheme, Theme
+from qfluentwidgets import LineEdit, PushButton, SearchLineEdit, setTheme, Theme,SplashScreen
 
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from CustomWebView import CustomWebView
@@ -48,23 +48,37 @@ class MainWindow(QWidget):
         super().__init__()
         self.setWindowTitle("My App")
         self.layout = QVBoxLayout()
-        self.layout.addWidget(CustomWebView())
+        self.layout.addWidget(CustomWebView())  
         self.setLayout(self.layout)
         self.setObjectName("MainInterface")
         
         subprocess.Popen(["streamlit", "run", "RegionSelection.py",'--server.headless','true'])
         
 
+metadata = json.load(open('meta.json'))  # meta.json contains [[(x, y, width, height), num_columns, num_rows], ...
 class TableWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("My App")
         self.layout = QVBoxLayout()
-        metadata = json.load(open('meta.json'))  # meta.json contains [[(x, y, width, height), num_columns, num_rows], ...
-        self.layout.addWidget(CustomTableWidget(metadata))
+        self.tableWidget = CustomTableWidget(metadata)  # Pass initial data from the JSON file
+        self.layout.addWidget(self.tableWidget)
         self.setLayout(self.layout)
         self.setObjectName("TableInterface")
-        
+
+        # Create a timer to periodically update the table data
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.updateTableData)
+        self.timer.start(2000)  # Set the update interval (in milliseconds)
+
+        # Initial data update
+        self.updateTableData()
+
+    def updateTableData(self):
+        # Reload data from the JSON file and update the table widget
+        new_metadata = json.load(open('meta.json'))
+        self.tableWidget.updateData(new_metadata)
+
 # ...
 class Window(FluentWindow):
 
@@ -90,7 +104,6 @@ class Window(FluentWindow):
 
 
 
-        # self.camera = cv2.VideoCapture(0)  # 0 represents the default camera (you can change it if needed)
 
 
     def initNavigation(self):
@@ -119,20 +132,26 @@ class Window(FluentWindow):
         self.addSubInterface(self.settingInterface, FIF.SETTING, 'Settings', NavigationItemPosition.BOTTOM)
 
         # add badge to navigation item
-        item = self.navigationInterface.widget(self.videoInterface.objectName())
-        InfoBadge.attension(
-            text=9,
-            parent=item.parent(),
-            target=item,
-            position=InfoBadgePosition.NAVIGATION_ITEM
-        )
-
+        # item = self.navigationInterface.widget(self.homeInterface.objectName())
+        # InfoBadge.attension(
+        #     text=len(metadata),
+        #     parent=item.parent(),
+        #     target=item,
+        #     position=InfoBadgePosition.NAVIGATION_ITEM
+        # )
 
 
     def initWindow(self):
-        self.resize(1000, 750)
         self.setWindowIcon(QIcon(':/qfluentwidgets/images/logo.png'))
-        self.setWindowTitle('PyQt-Fluent-Widgets')
+        
+        self.splashScreen = SplashScreen(self.windowIcon(), self)
+        
+        self.splashScreen.setIconSize(QSize(102, 102))
+        self.splashScreen.show()
+        QTimer.singleShot(2000, self.splashScreen.close)
+
+        self.resize(1000, 750)
+        self.setWindowTitle('GradVision')
 
         desktop = QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()

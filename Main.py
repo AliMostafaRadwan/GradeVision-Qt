@@ -27,7 +27,7 @@ from CustomWebView import CustomWebView
 import subprocess
 from TableWidget import CustomTableWidget
 import json
-# from test import CustomTableWidget
+from test import FolderSelectionWidget
 
 
 class Widget(QFrame):
@@ -43,17 +43,19 @@ class Widget(QFrame):
         self.setObjectName(text.replace(' ', '-'))
 
 #create a new class for our main window
-class MainWindow(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("My App")
-        self.layout = QVBoxLayout()
+
+class WebView(QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        # self.setWindowTitle("My App")
+        self.layout = QGridLayout()
         self.layout.addWidget(CustomWebView())  
         self.setLayout(self.layout)
-        self.setObjectName("MainInterface")
+        self.setObjectName("WebView")
+
         
         subprocess.Popen(["streamlit", "run", "RegionSelection.py",'--server.headless','true'])
-        
+
 
 metadata = json.load(open('meta.json'))  # meta.json contains [[(x, y, width, height), num_columns, num_rows], ...
 class TableWidget(QWidget):
@@ -78,7 +80,17 @@ class TableWidget(QWidget):
         # Reload data from the JSON file and update the table widget
         new_metadata = json.load(open('meta.json'))
         self.tableWidget.updateData(new_metadata)
-
+        
+        
+class FolderSelection(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("My App")
+        self.layout = QVBoxLayout()
+        self.button = FolderSelectionWidget()
+        self.layout.addWidget(self.button)
+        self.setLayout(self.layout)
+        self.setObjectName("FolderInterface")
 # ...
 class Window(FluentWindow):
 
@@ -86,9 +98,9 @@ class Window(FluentWindow):
         super().__init__()
 
         # create sub interface
-        self.mainInterface = MainWindow()
+        self.mainInterface = WebView()
         self.homeInterface = TableWidget()
-        self.musicInterface = Widget('Music Interface', self)
+        self.musicInterface = FolderSelection()
         self.videoInterface = Widget('Video Interface', self)
         self.folderInterface = Widget('Folder Interface', self)
         self.settingInterface = Widget('Setting Interface', self)
@@ -108,9 +120,9 @@ class Window(FluentWindow):
 
     def initNavigation(self):
         self.addSubInterface(self.mainInterface, FIF.HOME, 'Main')
-        self.addSubInterface(self.homeInterface, FIF.DOCUMENT, 'Answer Key')
+        self.addSubInterface(self.homeInterface, FIF.LABEL, 'Answer Key')
         
-        self.addSubInterface(self.musicInterface, FIF.MUSIC, 'Music library')
+        self.addSubInterface(self.musicInterface, FIF.CHECKBOX, 'Grading')
         self.addSubInterface(self.videoInterface, FIF.VIDEO, 'Video library')
 
         self.navigationInterface.addSeparator()
@@ -156,6 +168,8 @@ class Window(FluentWindow):
         desktop = QApplication.desktop().availableGeometry()
         w, h = desktop.width(), desktop.height()
         self.move(w//2 - self.width()//2, h//2 - self.height()//2)
+        
+        # self.setStyleSheet("background-image: url(resource\shoko.png);")
 
     def showMessageBox(self):
         w = MessageBox(
@@ -165,9 +179,10 @@ class Window(FluentWindow):
         )
         w.yesButton.setText('Yes')
         w.cancelButton.setText('No')
-    #theme
         if w.exec():
             QDesktopServices.openUrl(QUrl("https://afdian.net/a/zhiyiYo"))
+    
+    #theme
     setTheme(Theme.DARK)
 
 

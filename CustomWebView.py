@@ -2,7 +2,7 @@ from PyQt5.QtCore import Qt, QUrl
 
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtWidgets import QVBoxLayout, QWidget
-from qfluentwidgets import LineEdit, PushButton, PrimaryPushButton
+from qfluentwidgets import LineEdit, PushButton, PrimaryPushButton, setTheme, Theme, setCustomStyleSheet, CustomStyleSheet
 
 
 class CustomWebView(QWidget):
@@ -26,6 +26,8 @@ class CustomWebView(QWidget):
         self.layout.addWidget(self.webview)
 
         self.setLayout(self.layout)
+        
+        # setCustomStyleSheet(CustomStyleSheet.DARK)
 
 
 

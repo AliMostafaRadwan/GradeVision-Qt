@@ -52,6 +52,19 @@ class CustomTableWidget(QWidget):
                     table.setRowCount(num_rows)
                     table.setColumnCount(1)
                     table.setHorizontalHeaderLabels([f'Column {i + 1}'])
+                    try:
+                        #write the table data in a json file
+                        data = []
+                        for row in range(num_rows):
+                            row_data = []
+                            for col in range(1):
+                                row_data.append(table.item(row, col).text())
+                            data.append(row_data)
+                        print(data)
+                        # with open("table_data.json", "w") as f:
+                        #     f.write(json.dumps(data))
+                    except:
+                        pass
                 except IndexError:
                     table = QTableWidget(self)
                     table.setWordWrap(True)
@@ -72,9 +85,8 @@ class CustomTableWidget(QWidget):
                     self.hBoxLayout.addWidget(divider)
                     divider.show()
                     divider.setObjectName("divider")
-
-
-
+                    # print the table text
+                    
 
 
 

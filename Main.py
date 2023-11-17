@@ -28,6 +28,12 @@ import subprocess
 from TableWidget import CustomTableWidget
 import json
 from test import FolderSelectionWidget
+import sys
+from PyQt5.QtCore import QPoint, Qt
+from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout
+
+from qfluentwidgets import InfoBarIcon, InfoBar, PushButton, setTheme, Theme, FluentIcon, InfoBarPosition, InfoBarManager
+
 
 
 class Widget(QFrame):
@@ -57,7 +63,10 @@ class WebView(QFrame):
         subprocess.Popen(["streamlit", "run", "RegionSelection.py",'--server.headless','true'])
 
 
+
+
 metadata = json.load(open('meta.json'))  # meta.json contains [[(x, y, width, height), num_columns, num_rows], ...
+
 class TableWidget(QWidget):
     def __init__(self):
         super().__init__()
@@ -67,19 +76,51 @@ class TableWidget(QWidget):
         self.layout.addWidget(self.tableWidget)
         self.setLayout(self.layout)
         self.setObjectName("TableInterface")
+        
+        
+        
+        # Save Button
+        self.saveButton = PushButton('Save', self)
+        self.saveButton.clicked.connect(self.saveData)  # Connect the button click to the saveData method
+        
+        
 
-        # Create a timer to periodically update the table data
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.updateTableData)
-        self.timer.start(2000)  # Set the update interval (in milliseconds)
+        # self.saveButton.clicked.connect(createSuccessInfoBar)
+        self.layout.addWidget(self.saveButton)
 
-        # Initial data update
-        self.updateTableData()
 
-    def updateTableData(self):
-        # Reload data from the JSON file and update the table widget
-        new_metadata = json.load(open('meta.json'))
-        self.tableWidget.updateData(new_metadata)
+        # ... [rest of your TableWidget class]
+
+    def saveData(self):
+        # Call the save_table_data_to_json method from CustomTableWidget
+        self.tableWidget.save_table_data_to_json('output.json')  # Save to 'output.json'
+
+
+
+
+
+# class TableWidget(QWidget):
+#     def __init__(self):
+#         super().__init__()
+#         self.setWindowTitle("My App")
+#         self.layout = QVBoxLayout()
+#         self.tableWidget = CustomTableWidget(metadata)  # Pass initial data from the JSON file
+#         self.layout.addWidget(self.tableWidget)
+#         self.setLayout(self.layout)
+#         self.setObjectName("TableInterface")
+
+#         # Create a timer to periodically update the table data
+#         self.timer = QTimer(self)
+#         self.timer.timeout.connect(self.updateTableData)
+#         self.timer.start(2000)  # Set the update interval (in milliseconds)
+
+#         # Initial data update
+#         self.updateTableData()
+
+#     def updateTableData(self):
+#         # Reload data from the JSON file and update the table widget
+#         new_metadata = json.load(open('meta.json'))
+#         self.tableWidget.updateData(new_metadata)
         
         
 class FolderSelection(QWidget):

@@ -43,7 +43,7 @@ class CustomTableWidget(QWidget):
         self.setStyleSheet("CustomTableWidget{background: rgb(249, 249, 249)} ")
         self.hBoxLayout.setContentsMargins(0, 0, 0, 0)
         self.resize(935, 700)
-
+    
     def updateData(self, new_data):
             for i, ((x, y, width, height), num_columns, num_rows) in enumerate(new_data):
                 try:
@@ -53,17 +53,17 @@ class CustomTableWidget(QWidget):
                     table.setColumnCount(1)
                     table.setHorizontalHeaderLabels([f'Column {i + 1}'])
                     try:
-                        #write the table data in a json file
-                        data = []
-                        for row in range(num_rows):
-                            row_data = []
-                            for col in range(1):
-                                row_data.append(table.item(row, col).text())
-                            data.append(row_data)
-                        print(data)
-                        # with open("table_data.json", "w") as f:
-                        #     f.write(json.dumps(data))
-                    except:
+                        # write the table data in a json file
+                        data = set()
+                        for column in range(table.columnCount()):
+                            for row in range(table.rowCount()):
+                                data.add(table.item(row, column).text())
+                        with open('data.json', 'w') as f:
+                            json.dump(list(data), f)
+                            
+                    except Exception as e:
+                        print('error')
+                        print(e)
                         pass
                 except IndexError:
                     table = QTableWidget(self)
@@ -86,9 +86,26 @@ class CustomTableWidget(QWidget):
                     divider.show()
                     divider.setObjectName("divider")
                     # print the table text
-                    
+    
+    
+    
+    def save_table_data_to_json(self, file_name):
+        all_tables_data = []  # List to hold data of all tables
 
+        for table_index, table in enumerate(self.tables):
+            column_data = []  # Data for the single column in the current table
+            for row in range(table.rowCount()):
+                item = table.item(row, 0)  # Assuming there's only one column
+                cell_data = item.text() if item is not None else ""
+                column_data.append(cell_data)
 
+            # Add this table's data as an object with the column index as the key
+            table_data = {f"Column {table_index + 1}": column_data}
+            all_tables_data.append(table_data)
+
+        # Writing data to a JSON file
+        with open(file_name, 'w') as json_file:
+            json.dump(all_tables_data, json_file, indent=4)
 
 
 

@@ -23,3 +23,4 @@ class FolderSelectionWidget(QWidget):
 
         if folder_path:
             print("Selected Folder:", folder_path)
+

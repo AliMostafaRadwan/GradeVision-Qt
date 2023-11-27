@@ -78,7 +78,16 @@ class TableWidget(QWidget):
         self.setObjectName("TableInterface")
         
         
+        # Create a timer to periodically update the table data
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.updateTableData)
+        self.timer.start(2000)  # Set the update interval (in milliseconds)
         
+        
+        # Initial data update
+        self.updateTableData()
+        
+            
         # Save Button
         self.saveButton = PrimaryPushButton('Save', self, FIF.SAVE)
         self.saveButton.clicked.connect(self.saveData)  # Connect the button click to the saveData method
@@ -88,6 +97,10 @@ class TableWidget(QWidget):
         # self.saveButton.clicked.connect(createSuccessInfoBar)
         self.layout.addWidget(self.saveButton)
 
+    def updateTableData(self):
+        # Reload data from the JSON file and update the table widget
+        new_metadata = json.load(open('meta.json'))
+        self.tableWidget.updateData(new_metadata)
 
         # ... [rest of your TableWidget class]
 

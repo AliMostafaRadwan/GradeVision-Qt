@@ -80,7 +80,7 @@ class TableWidget(QWidget):
         
         
         # Save Button
-        self.saveButton = PushButton('Save', self)
+        self.saveButton = PrimaryPushButton('Save', self, FIF.SAVE)
         self.saveButton.clicked.connect(self.saveData)  # Connect the button click to the saveData method
         
         

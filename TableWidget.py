@@ -31,14 +31,14 @@ class CustomTableWidget(QWidget):
             self.tables.append(table)
             self.hBoxLayout.addWidget(table)
 
-            # Add a vertical blue line in between the tables
-            divider = QWidget(self)
-            divider.setFixedWidth(2)
-            divider.setFixedHeight(8)
-            divider.setStyleSheet("background-color: rgb(0, 120, 0);")
-            self.hBoxLayout.addWidget(divider)
-            divider.show()
-            divider.setObjectName("divider")
+            # # Add a vertical blue line in between the tables
+            # divider = QWidget(self)
+            # divider.setFixedWidth(2)
+            # divider.setFixedHeight(8)
+            # divider.setStyleSheet("background-color: rgb(0, 120, 0);")
+            # self.hBoxLayout.addWidget(divider)
+            # divider.show()
+            # divider.setObjectName("divider")
 
         self.setStyleSheet("CustomTableWidget{background: rgb(249, 249, 249)} ")
         self.hBoxLayout.setContentsMargins(0, 0, 0, 0)
@@ -77,14 +77,14 @@ class CustomTableWidget(QWidget):
                     self.tables.append(table)
                     self.hBoxLayout.addWidget(table)
 
-                    # Add a vertical blue line in between the tables
-                    divider = QWidget(self)
-                    divider.setFixedWidth(2)
-                    divider.setFixedHeight(8)
-                    divider.setStyleSheet("background-color: rgb(0, 120, 0);")
-                    self.hBoxLayout.addWidget(divider)
-                    divider.show()
-                    divider.setObjectName("divider")
+                    # # Add a vertical blue line in between the tables
+                    # divider = QWidget(self)
+                    # divider.setFixedWidth(2)
+                    # divider.setFixedHeight(8)
+                    # divider.setStyleSheet("background-color: rgb(0, 120, 0);")
+                    # self.hBoxLayout.addWidget(divider)
+                    # divider.show()
+                    # divider.setObjectName("divider")
                     # print the table text
     
     

@@ -95,7 +95,15 @@ class TableWidget(QWidget):
         # Call the save_table_data_to_json method from CustomTableWidget
         self.tableWidget.save_table_data_to_json('output.json')  # Save to 'output.json'
 
-
+        InfoBar.success(
+            title='Save Successful',
+            content='Data has been saved successfully!',
+            orient=Qt.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self
+        )
 
 
 

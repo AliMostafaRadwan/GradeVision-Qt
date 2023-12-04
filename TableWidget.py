@@ -62,8 +62,8 @@ class CustomTableWidget(QWidget):
                             json.dump(list(data), f)
                             
                     except Exception as e:
-                        print('error')
-                        print(e)
+                        # print('error')
+                        # print(e)
                         pass
                 except IndexError:
                     table = QTableWidget(self)

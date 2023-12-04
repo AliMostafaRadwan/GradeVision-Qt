@@ -2,38 +2,48 @@
 import sys
 
 from PyQt5.QtCore import Qt, QUrl, QTimer
-from PyQt5.QtGui import QIcon, QDesktopServices, QImage, QPixmap
-from PyQt5.QtWidgets import QApplication, QFrame, QHBoxLayout, QLabel, QVBoxLayout
+from PyQt5.QtGui import QIcon, QDesktopServices
+from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout
 from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme, FluentWindow,
-                            NavigationAvatarWidget, qrouter, SubtitleLabel, setFont, InfoBadge,
-                            InfoBadgePosition)
-from qfluentwidgets import FluentIcon as FIF
-import time
+                            NavigationAvatarWidget, SubtitleLabel, setFont)
+from qfluentwidgets import FluentIcon as FIF, MSFluentTitleBar, isDarkTheme
 
 from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QAction, QGridLayout
-from qfluentwidgets import (Action, DropDownPushButton, DropDownToolButton, PushButton, PrimaryPushButton,
-                            HyperlinkButton, setTheme, Theme, ToolButton, ToggleButton, RoundMenu,
-                            SplitPushButton, SplitToolButton, PrimaryToolButton, PrimarySplitPushButton,
-                            PrimarySplitToolButton, PrimaryDropDownPushButton, PrimaryDropDownToolButton,
-                            TogglePushButton, ToggleToolButton, TransparentPushButton, TransparentToolButton,
-                            TransparentToggleToolButton, TransparentTogglePushButton, TransparentDropDownToolButton,
-                            TransparentDropDownPushButton, PillPushButton, PillToolButton, setCustomStyleSheet,
-                            CustomStyleSheet)
-from qfluentwidgets import LineEdit, PushButton, SearchLineEdit, setTheme, Theme,SplashScreen
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QGridLayout
+from qfluentwidgets import (PrimaryPushButton,
+                            setTheme, Theme)
+from qfluentwidgets import setTheme, Theme,SplashScreen
 
-from PyQt5.QtWebEngineWidgets import QWebEngineView
 from CustomWebView import CustomWebView
 import subprocess
 from TableWidget import CustomTableWidget
 import json
-from test import FolderSelectionWidget
+from FolderSelector import FolderSelectionWidget
 import sys
-from PyQt5.QtCore import QPoint, Qt
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QWidget
 
-from qfluentwidgets import InfoBarIcon, InfoBar, PushButton, setTheme, Theme, FluentIcon, InfoBarPosition, InfoBarManager
+from qfluentwidgets import InfoBar, setTheme, Theme, InfoBarPosition
 
+
+def isWin11():
+    return sys.platform == 'win32' and sys.getwindowsversion().build >= 22000
+
+
+if isWin11():
+    from qframelesswindow import AcrylicWindow as Window
+    print('win11')
+else:
+    from qframelesswindow import FramelessWindow as Window
+
+
+class MicaWindow(Window):
+
+    def __init__(self, parent=None):
+        super().__init__()
+        self.setTitleBar(MSFluentTitleBar(self))
+        if isWin11():
+            self.windowEffect.setMicaEffect(self.winId(), isDarkTheme())
 
 
 class Widget(QFrame):
@@ -50,7 +60,7 @@ class Widget(QFrame):
 
 #create a new class for our main window
 
-class WebView(QFrame):
+class WebView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         # self.setWindowTitle("My App")
@@ -58,8 +68,8 @@ class WebView(QFrame):
         self.layout.addWidget(CustomWebView())  
         self.setLayout(self.layout)
         self.setObjectName("WebView")
-
         
+        self.window
         subprocess.Popen(["streamlit", "run", "RegionSelection.py",'--server.headless','true'])
 
 
@@ -76,6 +86,7 @@ class TableWidget(QWidget):
         self.layout.addWidget(self.tableWidget)
         self.setLayout(self.layout)
         self.setObjectName("TableInterface")
+        
         
         
         # Create a timer to periodically update the table data
@@ -120,28 +131,6 @@ class TableWidget(QWidget):
 
 
 
-# class TableWidget(QWidget):
-#     def __init__(self):
-#         super().__init__()
-#         self.setWindowTitle("My App")
-#         self.layout = QVBoxLayout()
-#         self.tableWidget = CustomTableWidget(metadata)  # Pass initial data from the JSON file
-#         self.layout.addWidget(self.tableWidget)
-#         self.setLayout(self.layout)
-#         self.setObjectName("TableInterface")
-
-#         # Create a timer to periodically update the table data
-#         self.timer = QTimer(self)
-#         self.timer.timeout.connect(self.updateTableData)
-#         self.timer.start(2000)  # Set the update interval (in milliseconds)
-
-#         # Initial data update
-#         self.updateTableData()
-
-#     def updateTableData(self):
-#         # Reload data from the JSON file and update the table widget
-#         new_metadata = json.load(open('meta.json'))
-#         self.tableWidget.updateData(new_metadata)
         
         
 class FolderSelection(QWidget):
@@ -149,11 +138,13 @@ class FolderSelection(QWidget):
         super().__init__()
         self.setWindowTitle("My App")
         self.layout = QVBoxLayout()
-        self.button = FolderSelectionWidget()
-        self.layout.addWidget(self.button)
+        self.FolderWidget = FolderSelectionWidget()
+        self.layout.addWidget(self.FolderWidget)
         self.setLayout(self.layout)
         self.setObjectName("FolderInterface")
 # ...
+
+
 class Window(FluentWindow):
 
     def __init__(self):
@@ -170,7 +161,7 @@ class Window(FluentWindow):
         self.albumInterface1 = Widget('Album Interface 1', self)
         self.albumInterface2 = Widget('Album Interface 2', self)
         self.albumInterface1_1 = Widget('Album Interface 1-1', self)
-
+        
 
         self.initNavigation()
         self.initWindow()
@@ -214,7 +205,6 @@ class Window(FluentWindow):
         #     position=InfoBadgePosition.NAVIGATION_ITEM
         # )
 
-
     def initWindow(self):
         self.setWindowIcon(QIcon(':/qfluentwidgets/images/logo.png'))
         
@@ -222,7 +212,7 @@ class Window(FluentWindow):
         
         self.splashScreen.setIconSize(QSize(102, 102))
         self.splashScreen.show()
-        QTimer.singleShot(2000, self.splashScreen.close)
+        QTimer.singleShot(20, self.splashScreen.close) #200
 
         self.resize(1000, 750)
         self.setWindowTitle('GradVision')

@@ -32,6 +32,7 @@ from qfluentwidgets import FluentIcon as FIF, MSFluentTitleBar, isDarkTheme
 class CustomWebView(QWidget):
     def __init__(self):
         super().__init__()
+        
         self.layout = QVBoxLayout()
 
         # self.url_input = LineEdit()
@@ -42,8 +43,7 @@ class CustomWebView(QWidget):
 
         # url = self.url_input.text()
         url = "http://localhost:8501/"
-        if url:
-            self.webview.setUrl(QUrl(url))
+        self.webview.load(QUrl(url))
 
         # self.layout.addWidget(self.url_input)
         # self.layout.addWidget(self.load_button)

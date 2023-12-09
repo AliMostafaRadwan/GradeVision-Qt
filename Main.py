@@ -3,7 +3,7 @@ import sys
 
 from PyQt5.QtCore import Qt, QUrl, QTimer
 from PyQt5.QtGui import QIcon, QDesktopServices
-from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QHBoxLayout
 from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme, FluentWindow,
                             NavigationAvatarWidget, SubtitleLabel, setFont)
 from qfluentwidgets import FluentIcon as FIF, MSFluentTitleBar, isDarkTheme
@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QGridLayout
 from qfluentwidgets import (PrimaryPushButton,
                             setTheme, Theme)
 from qfluentwidgets import setTheme, Theme,SplashScreen
-
+from qframelesswindow.webengine import FramelessWebEngineView
 from CustomWebView import CustomWebView
 import subprocess
 from TableWidget import CustomTableWidget
@@ -26,24 +26,24 @@ from PyQt5.QtWidgets import QApplication, QWidget
 from qfluentwidgets import InfoBar, setTheme, Theme, InfoBarPosition
 
 
-def isWin11():
-    return sys.platform == 'win32' and sys.getwindowsversion().build >= 22000
+# def isWin11():
+#     return sys.platform == 'win32' and sys.getwindowsversion().build >= 22000
 
 
-if isWin11():
-    from qframelesswindow import AcrylicWindow as Window
-    print('win11')
-else:
-    from qframelesswindow import FramelessWindow as Window
+# if isWin11():
+#     from qframelesswindow import AcrylicWindow as Window
+#     print('win11')
+# else:
+#     from qframelesswindow import FramelessWindow as Window
 
 
-class MicaWindow(Window):
+# class MicaWindow(Window):
 
-    def __init__(self, parent=None):
-        super().__init__()
-        self.setTitleBar(MSFluentTitleBar(self))
-        if isWin11():
-            self.windowEffect.setMicaEffect(self.winId(), isDarkTheme())
+#     def __init__(self, parent=None):
+#         super().__init__()
+#         self.setTitleBar(MSFluentTitleBar(self))
+#         if isWin11():
+#             self.windowEffect.setMicaEffect(self.winId(), isDarkTheme())
 
 
 class Widget(QFrame):
@@ -64,8 +64,12 @@ class WebView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         # self.setWindowTitle("My App")
-        self.layout = QGridLayout()
-        self.layout.addWidget(CustomWebView())  
+        self.webview = FramelessWebEngineView(self)
+        WebUrl = "http://localhost:8501/"
+        self.webview.load(QUrl(WebUrl))
+        
+        self.layout = QHBoxLayout()
+        self.layout.addWidget(self.webview)
         self.setLayout(self.layout)
         self.setObjectName("WebView")
         
@@ -149,7 +153,7 @@ class Window(FluentWindow):
 
     def __init__(self):
         super().__init__()
-
+        self.setMicaEffectEnabled(True)
         # create sub interface
         self.mainInterface = WebView()
         self.homeInterface = TableWidget()
@@ -216,8 +220,9 @@ class Window(FluentWindow):
 
         self.resize(1000, 750)
         self.setWindowTitle('GradVision')
-
-        desktop = QApplication.desktop().availableGeometry()
+        self.updateFrameless()
+        self.setMicaEffectEnabled(True)
+        desktop = QApplication.screens()[0].availableGeometry()
         w, h = desktop.width(), desktop.height()
         self.move(w//2 - self.width()//2, h//2 - self.height()//2)
         

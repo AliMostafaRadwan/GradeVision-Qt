@@ -1,29 +1,21 @@
 # coding:utf-8
 import sys
 
-import qfluentwidgets
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtWidgets import QApplication, QHBoxLayout
-from qfluentwidgets import FluentWindow, SmoothScrollArea
-
-from qframelesswindow import StandardTitleBar
+from PyQt5.QtWebEngineWidgets import QWebEngineView
+from qframelesswindow import FramelessWindow, TitleBar, StandardTitleBar
 from qframelesswindow.webengine import FramelessWebEngineView
+from qfluentwidgets import FluentWindow
 
-
-class Window(FluentWindow):
+class Window(FramelessWindow):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.setMicaEffectEnabled(True)
-
-        self.interface = SmoothScrollArea(self)
-        self.interface.setObjectName("testInterface")
-
-        self.addSubInterface(self.interface, qfluentwidgets.FluentIcon.TAG, "test")
-
         # change the default title bar if you like
         self.setTitleBar(StandardTitleBar(self))
-        self.hBoxLayout = QHBoxLayout(self.interface)
+
+        self.hBoxLayout = QHBoxLayout(self)
 
         # must replace QWebEngineView with FramelessWebEngineView
         self.webEngine = FramelessWebEngineView(self)
@@ -36,6 +28,7 @@ class Window(FluentWindow):
         self.resize(1200, 800)
 
         self.titleBar.raise_()
+
 
 
 if __name__ == "__main__":

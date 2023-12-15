@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QApplication, QFrame, QVBoxLayout, QHBoxLayout
 from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme, FluentWindow,
                             NavigationAvatarWidget, SubtitleLabel, setFont)
 from qfluentwidgets import FluentIcon as FIF, MSFluentTitleBar, isDarkTheme
+from pathlib import Path
 
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QGridLayout
@@ -23,27 +24,10 @@ import sys
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget
 
-from qfluentwidgets import InfoBar, setTheme, Theme, InfoBarPosition
+from qfluentwidgets import InfoBar, setTheme, Theme, InfoBarPosition, LargeTitleLabel, DisplayLabel,CaptionLabel
 
-
-# def isWin11():
-#     return sys.platform == 'win32' and sys.getwindowsversion().build >= 22000
-
-
-# if isWin11():
-#     from qframelesswindow import AcrylicWindow as Window
-#     print('win11')
-# else:
-#     from qframelesswindow import FramelessWindow as Window
-
-
-# class MicaWindow(Window):
-
-#     def __init__(self, parent=None):
-#         super().__init__()
-#         self.setTitleBar(MSFluentTitleBar(self))
-#         if isWin11():
-#             self.windowEffect.setMicaEffect(self.winId(), isDarkTheme())
+from qfluentwidgets import (FlipImageDelegate, Theme, HorizontalPipsPager, HorizontalFlipView,
+                            VerticalFlipView, getFont)
 
 
 class Widget(QFrame):
@@ -149,16 +133,68 @@ class FolderSelection(QWidget):
 # ...
 
 
+class ImageDis(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        # setTheme(Theme.DARK)
+        # self.setStyleSheet('Demo{background:rgb(32,32,32)}')
+        
+        # self.setAttribute(Qt.WA_TranslucentBackground)
+        self.label = LargeTitleLabel('Image Viewer', self)
+        self.note = CaptionLabel('Note: the speed or the lag of the preview is caused by the high image resulotion ', self)
+        # self.label.setAlignment(Qt.AlignCenter)
+
+        self.setObjectName('ImageInterface')
+        self.flipView = HorizontalFlipView(self)
+        self.pager = HorizontalPipsPager(self)
+
+        # change aspect ratio mode
+        self.flipView.setAspectRatioMode(Qt.AspectRatioMode.KeepAspectRatio)
+
+        # adjust view size
+        self.flipView.setItemSize(QSize(620, 480))
+        self.flipView.setFixedSize(QSize(920, 780))
+
+        # NOTE: use custom delegate
+        # self.flipView.setItemDelegate(CustomFlipItemDelegate(self.flipView))
+
+        # add images
+        self.flipView.addImages([str(i) for i in Path('C:\Main\Code\GradeVision\images').glob('*')])
+        self.pager.setPageNumber(self.flipView.count())
+
+        # adjust border radius
+        self.flipView.setBorderRadius(10)
+        self.flipView.setFixedSize(QSize(710, 470))
+        self.flipView.setSpacing(10)
+
+        self.pager.currentIndexChanged.connect(self.flipView.setCurrentIndex)
+        self.flipView.currentIndexChanged.connect(self.pager.setCurrentIndex)
+
+        # self.flipView.setCurrentIndex(2)
+
+        self.setLayout(QVBoxLayout(self))
+        self.layout().addWidget(self.label, 0, Qt.AlignCenter)
+        self.layout().addWidget(self.flipView, 0, Qt.AlignCenter)
+        self.layout().addWidget(self.pager, 0, Qt.AlignCenter)
+        self.layout().addWidget(self.note, 0, Qt.AlignCenter)
+        self.layout().setAlignment(Qt.AlignCenter)
+        self.layout().setSpacing(20)
+        self.resize(600, 600)
+        
+
+
+
 class Window(FluentWindow):
 
     def __init__(self):
         super().__init__()
         self.setMicaEffectEnabled(True)
         # create sub interface
-        self.mainInterface = WebView()
+        self.mainInterface = Widget('Folder Interface', self) #WebView()
         self.homeInterface = TableWidget()
         self.musicInterface = FolderSelection()
-        self.videoInterface = Widget('Video Interface', self)
+        self.videoInterface = ImageDis()
         self.folderInterface = Widget('Folder Interface', self)
         self.settingInterface = Widget('Setting Interface', self)
         self.albumInterface = Widget('Album Interface', self)
@@ -180,7 +216,7 @@ class Window(FluentWindow):
         self.addSubInterface(self.homeInterface, FIF.LABEL, 'Answer Key')
         
         self.addSubInterface(self.musicInterface, FIF.CHECKBOX, 'Grading')
-        self.addSubInterface(self.videoInterface, FIF.VIDEO, 'Video library')
+        self.addSubInterface(self.videoInterface, FIF.PHOTO, 'Image Preview')
 
         self.navigationInterface.addSeparator()
 

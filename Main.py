@@ -9,7 +9,7 @@ from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme,
 from qfluentwidgets import FluentIcon as FIF, MSFluentTitleBar, isDarkTheme
 from pathlib import Path
 
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QGridLayout
 from qfluentwidgets import (PrimaryPushButton,
                             setTheme, Theme)
@@ -24,10 +24,16 @@ import sys
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget
 
-from qfluentwidgets import InfoBar, setTheme, Theme, InfoBarPosition, LargeTitleLabel, DisplayLabel,CaptionLabel
+from qfluentwidgets import InfoBar, setTheme, Theme, InfoBarPosition, LargeTitleLabel, DisplayLabel,CaptionLabel, SmoothScrollArea
 
 from qfluentwidgets import (FlipImageDelegate, Theme, HorizontalPipsPager, HorizontalFlipView,
                             VerticalFlipView, getFont)
+
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QFileDialog
+from qfluentwidgets import PrimaryPushButton, SubtitleLabel, ProgressRing
+from PyQt5.QtCore import Qt
+import glob
+
 
 
 class Widget(QFrame):
@@ -121,15 +127,43 @@ class TableWidget(QWidget):
 
         
         
-class FolderSelection(QWidget):
+class FolderSelectionWidget(QWidget):
+    
+    folderSelected = pyqtSignal(str)
+    
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("My App")
-        self.layout = QVBoxLayout()
-        self.FolderWidget = FolderSelectionWidget()
-        self.layout.addWidget(self.FolderWidget)
-        self.setLayout(self.layout)
+        self.initUI()
+
+    def initUI(self):
+        layout = QVBoxLayout()
+        # self.progressRing = ProgressRing(self)
+        # self.progressRing.setValue(55)
+        # self.progressRing.setTextVisible(True)
+        # self.progressRing.setFixedSize(180, 180)
+        self.button = PrimaryPushButton("Select Folder")
+        self.button.clicked.connect(self.openFileDialog)
+
+        self.sublabel = SubtitleLabel("", self)  # Initialize with an empty string
+        layout.addWidget(self.button, alignment=Qt.AlignCenter)
+        layout.addWidget(self.sublabel, alignment=Qt.AlignCenter)
+        # layout.addWidget(self.progressRing, alignment=Qt.AlignCenter)
+        self.setLayout(layout)
         self.setObjectName("FolderInterface")
+        
+
+    def openFileDialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.ReadOnly
+
+        folder_path = QFileDialog.getExistingDirectory(self, "Select Folder", options=options)
+
+        if folder_path:
+            print("Selected Folder:", folder_path)
+            total_images = len(glob.glob(folder_path + "/*.tif"))
+            print("Total Images:", total_images)
+            self.sublabel.setText(folder_path)  # Update the label text with the selected folder path
+            self.folderSelected.emit(folder_path)
 # ...
 
 
@@ -193,7 +227,7 @@ class Window(FluentWindow):
         # create sub interface
         self.mainInterface = Widget('Folder Interface', self) #WebView()
         self.homeInterface = TableWidget()
-        self.musicInterface = FolderSelection()
+        self.musicInterface = FolderSelectionWidget()
         self.videoInterface = ImageDis()
         self.folderInterface = Widget('Folder Interface', self)
         self.settingInterface = Widget('Setting Interface', self)

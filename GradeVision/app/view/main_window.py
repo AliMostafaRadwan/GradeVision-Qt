@@ -32,6 +32,7 @@ from .Graphs import MyChartWidget as GraphWindow
 # from .temp import GradingInterface as Ui_Form
 from .GradingWidget import StartWidget as GradingApp
 from .checkresults import CheckRes
+from .RegionSelectionQT import RegionSelection
 
 
 
@@ -286,14 +287,14 @@ class Core(QWidget):
     def __init__(self):
         super().__init__()
         # setTheme(Theme.DARK)
-        self.setStyleSheet("""
-            Demo{background: white}
-            QLabel{
-                font: 20px 'Segoe UI';
-                background: rgb(242,242,242);
-                border-radius: 8px;
-            }
-        """)
+        # self.setStyleSheet("""
+        #     Demo{background: white}
+        #     QLabel{
+        #         font: 20px 'Segoe UI';
+        #         background: rgb(242,242,242);
+        #         border-radius: 8px;
+        #     }
+        # """)
         self.resize(400, 400)
         
         
@@ -355,7 +356,7 @@ class Window(FluentWindow):
         super().__init__()
         
         # create sub interface
-        self.homeInterface = Widget('Home')
+        self.homeInterface = RegionSelection()
         self.appInterface = TableWidget()
         self.videoInterface = Core()
         self.libraryInterface = CheckRes()

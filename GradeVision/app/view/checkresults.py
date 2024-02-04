@@ -26,7 +26,10 @@ class CheckRes(QtWidgets.QWidget, CheckResUI):
         
         # Add the CSV file to the file watcher
         self.file_watcher.addPath('GradeVision/app/view\grading_data.csv')
-       
+        
+        #object name
+        self.setObjectName("CheckRes")
+        
     def handle_file_change(self):
         # Reload data when the file changes
         self.load_data('GradeVision/app/view\grading_data.csv')

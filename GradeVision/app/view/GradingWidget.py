@@ -90,8 +90,7 @@ class GradingApp(QWidget, Ui_Form):
         self.CaptionLabel.setText("")
 
         
-        #make the label text black
-        self.TitleLabel.setStyleSheet("color: black;")
+        
         
         # Connect the output signal from GradingLogic to display in the PlainTextEdit
         self.grading_logic.output_changed.connect(self.update_output)

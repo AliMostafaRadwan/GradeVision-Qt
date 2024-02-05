@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets, QtGui
 from .RegionSelectionUI_ui import Ui_Form
-from PyQt5.QtWidgets import QVBoxLayout, QStackedWidget, QLabel, QTableWidgetItem
+from PyQt5.QtWidgets import QVBoxLayout, QStackedWidget, QLabel, QTableWidgetItem , QHBoxLayout
 from PyQt5.QtGui import QPixmap, QImage, QPainter
 from PyQt5.QtCore import Qt, QRect, QRectF
 from qfluentwidgets import PrimaryPushButton, InfoBar, InfoBarPosition
@@ -12,7 +12,7 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         self.table = self.TableWidget
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(['ROI Number', 'Row Number', 'Column Number'])
-        #expand the table to fit the contents
+        # expand the table to fit the contents
         self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
         # Creating a stacked widget
@@ -32,9 +32,10 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         self.image_page = QtWidgets.QWidget(self)
         image_layout = QVBoxLayout(self.image_page)
 
-        self.image_label = QLabel(self.image_page)
-        self.image_label.setAlignment(Qt.AlignCenter)
-        image_layout.addWidget(self.image_label)
+        # Use QHBoxLayout to manage the image label's size policy
+        hbox = QHBoxLayout(self.image_page)
+        hbox.addWidget(self.image_label, alignment=Qt.AlignCenter)
+        image_layout.addLayout(hbox)
 
         self.image_label.mousePressEvent = self.mouse_press_event
         self.image_label.mouseReleaseEvent = self.mouse_release_event
@@ -100,7 +101,7 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
             self.table.setRowCount(self.table.rowCount() + 1)
 
             self.table.setItem(self.table.rowCount() - 1, 0, QTableWidgetItem(str(self.table.rowCount())))
-            self.table.setItem(self.table.rowCount() - 1, 1, QTableWidgetItem(str(roi_y)))  # Corrected indices
-            self.table.setItem(self.table.rowCount() - 1, 2, QTableWidgetItem(str(roi_x)))  # Corrected indices
+            self.table.setItem(self.table.rowCount() - 1, 1, QTableWidgetItem(str()))  # Corrected indices
+            self.table.setItem(self.table.rowCount() - 1, 2, QTableWidgetItem(str()))  # Corrected indices
 
             self.roi_rect = None

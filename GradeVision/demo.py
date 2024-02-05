@@ -28,7 +28,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_DontCreateNativeWidgetSiblings)
     # setThemeColor('#00CDFF')
-    # setTheme(Theme.LIGHT)
+    setTheme(Theme.LIGHT)
     
     # internationalization
     locale = cfg.get(cfg.language).value

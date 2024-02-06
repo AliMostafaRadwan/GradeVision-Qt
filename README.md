@@ -12,22 +12,6 @@
 pip install -r requirements.txt
 ```
 
-then inside the `streamlit_cropper` add this :
-
-```python
-#inside the __init__.py
-# Return the value desired by the return_type
-    if return_type.lower() == 'image':
-        if not should_resize_image:
-            cropped_img = img_file.crop(
-                (rect['left'], rect['top'], rect['width'] + rect['left'], rect['height'] + rect['top']))
-        else:
-            cropped_img = orig_file.crop(
-                (rect['left'], rect['top'], rect['width'] + rect['left'], rect['height'] + rect['top']))
-        return cropped_img ,rect
-    elif return_type.lower() == 'box':
-        return cropped_img ,rect
-```
 
 then run the `demo.py`
 

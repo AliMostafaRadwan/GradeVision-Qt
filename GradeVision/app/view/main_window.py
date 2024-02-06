@@ -33,6 +33,7 @@ from .Graphs import MyChartWidget as GraphWindow
 from .GradingWidget import StartWidget as GradingApp
 from .checkresults import CheckRes
 from .RegionSelectionQT import RegionSelection
+from .setting_interface import SettingInterface
 
 
 
@@ -360,6 +361,7 @@ class Window(FluentWindow):
         self.appInterface = TableWidget()
         self.videoInterface = Core()
         self.libraryInterface = CheckRes()
+        # self.settingInterface = SettingInterface(self)
         
         self.analyticsInterface = GraphWindow(parent=self)
 
@@ -371,10 +373,11 @@ class Window(FluentWindow):
         self.addSubInterface(self.appInterface, FluentIcon.APPLICATION, 'Answer Key')
         self.addSubInterface(self.videoInterface, FluentIcon.VIDEO, 'Start')
         self.addSubInterface(self.analyticsInterface, FluentIcon.IOT, 'Analytics')
-        
-        
-        
-        self.addSubInterface(self.libraryInterface, FluentIcon.ALIGNMENT, 'Check Results')
+        self.addSubInterface(self.libraryInterface, FluentIcon.ALIGNMENT, 'Check Results', NavigationItemPosition.BOTTOM)
+
+        # self.addSubInterface(
+    # self.settingInterface, FluentIcon.SETTING, self.tr('Settings'), NavigationItemPosition.BOTTOM)
+
         
         self.navigationInterface.addItem(
             routeKey='Help',
@@ -422,14 +425,14 @@ class Window(FluentWindow):
         if w.exec():
             QDesktopServices.openUrl(QUrl("https://github.com/AliMostafaRadwan"))
 
-    setTheme(Theme.DARK)
+    # setTheme(Theme.DARK)
 
 if __name__ == '__main__':
     QApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
-    setThemeColor('#00CDFF')
+    # setThemeColor('#00CDFF')
 
     app = QApplication(sys.argv)
     w = Window()

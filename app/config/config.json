@@ -1,0 +1,21 @@
+{
+    "Material": {
+        "AcrylicBlurRadius": 22
+    },
+    "Update": {
+        "CheckUpdateAtStartUp": true
+    },
+    "Folders": {
+        "Download": "A:/Main/CODE/GUI/GradeVision-Qt/app/download",
+        "LocalMusic": []
+    },
+    "MainWindow": {
+        "DpiScale": "Auto",
+        "Language": "en_US",
+        "MicaEnabled": true
+    },
+    "QFluentWidgets": {
+        "ThemeColor": "#ffd80d0d",
+        "ThemeMode": "Dark"
+    }
+}

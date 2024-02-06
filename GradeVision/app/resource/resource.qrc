@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/gallery">
+    <qresource prefix="/GradeVision">
         <file>images/controls/Acrylic.png</file>
         <file>images/controls/AnimatedIcon.png</file>
         <file>images/controls/AnimatedVisualPlayer.png</file>
@@ -147,6 +147,8 @@
 
         <file>i18n/gallery.zh_CN.qm</file>
         <file>i18n/gallery.zh_HK.qm</file>
+        <file>i18n/gallery.ar_EG.qm</file>
+
 
     </qresource>
 </RCC>

@@ -17,4 +17,6 @@ SOURCES += app/view/main_window.py \
         app/view/test.py \
 
 TRANSLATIONS += app/resource/i18n/gallery.zh_CN.ts \
-        app/resource/i18n/gallery.zh_HK.ts
+        app/resource/i18n/gallery.zh_HK.ts \
+        app/resource/i18n/gallery.ar_EG.ts
+

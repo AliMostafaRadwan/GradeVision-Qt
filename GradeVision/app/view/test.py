@@ -22,7 +22,7 @@ class Demo(QWidget):
 
     def contextMenuEvent(self, e):
         menu = RoundMenu(parent=self)
-        # menu = CheckableMenu(parent=self, indicatorType=MenuIndicatorType.RADIO)
+        menu = CheckableMenu(parent=self, indicatorType=MenuIndicatorType.RADIO)
 
         # NOTE: hide the shortcut key
         # menu.view.setItemDelegate(MenuItemDelegate())
@@ -30,8 +30,8 @@ class Demo(QWidget):
         # add actions
         menu.addAction(Action(FIF.COPY, 'Copy'))
         menu.addAction(Action(FIF.CUT, 'Cut'))
-        menu.actions()[0].setCheckable(True)
-        menu.actions()[0].setChecked(True)
+        # menu.actions()[0].setCheckable(True)
+        # menu.actions()[0].setChecked(True)
 
         # add sub menu
         submenu = RoundMenu("Add to", self)

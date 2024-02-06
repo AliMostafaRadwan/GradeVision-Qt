@@ -28,14 +28,14 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_DontCreateNativeWidgetSiblings)
     # setThemeColor('#00CDFF')
-    setTheme(Theme.LIGHT)
+    setTheme(Theme.DARK)
     
     # internationalization
     locale = cfg.get(cfg.language).value
     translator = FluentTranslator(locale)
     galleryTranslator = QTranslator()
-    galleryTranslator.load(locale, "GradeVision", ".", ":/GradeVision/i18n")
-
+    galleryTranslator.load(locale, "GradeVision", ".", ":/GradeVision/app/resource/i18n")
+    # print(cfg.language.value)
     app.installTranslator(translator)
     app.installTranslator(galleryTranslator)
     

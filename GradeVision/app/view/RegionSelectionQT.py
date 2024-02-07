@@ -1,11 +1,11 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 from .RegionSelectionUI_ui import Ui_Form
-from PyQt5.QtWidgets import QVBoxLayout, QStackedWidget, QTableWidgetItem, QShortcut
-from PyQt5.QtGui import QPixmap, QImage, QPainter, QKeySequence, QPen
+from PyQt5.QtWidgets import QVBoxLayout, QStackedWidget, QTableWidgetItem, QShortcut, QHBoxLayout
+from PyQt5.QtGui import QPixmap, QImage, QPainter, QKeySequence, QPen, QColor
 from PyQt5.QtCore import Qt, QRect, pyqtSignal
 
 # Import RCanvas from the edited ROI code
-from qfluentwidgets import PrimaryPushButton, Action, FluentIcon, TransparentDropDownPushButton, InfoBar, InfoBarPosition, CommandBar
+from qfluentwidgets import PrimaryPushButton, Action, FluentIcon, TransparentDropDownPushButton, InfoBar, InfoBarPosition, CommandBar, RoundMenu
 
 class RCanvas(QtWidgets.QWidget):
     customSignal = pyqtSignal(int)
@@ -18,6 +18,10 @@ class RCanvas(QtWidgets.QWidget):
         self.revisions = []
         global roi_count
         roi_count = 0  # Initialize ROI count
+        
+        global roi_list
+        roi_list = []  # List to store ROIs
+        
 
         
     def mousePressEvent(self, event):
@@ -25,6 +29,9 @@ class RCanvas(QtWidgets.QWidget):
             self.pressed = True
             self.start_point = event.pos()
             self.end_point = event.pos()
+            x = self.start_point.x()
+            y = self.start_point.y()
+            print(f'x: {x}, y: {y}')
             self.update()
 
     def mouseMoveEvent(self, event):
@@ -47,6 +54,15 @@ class RCanvas(QtWidgets.QWidget):
             # Emit the roiCountChanged signal here
             self.customSignal.emit(roi_count)
 
+            
+            # roi_list.append([self.start_point, self.end_point])  # Append ROI coordinates to the list
+            # print(f'ROI List: {roi_list}')  # Print ROI list
+            width = self.end_point.x() - self.start_point.x()
+            height = self.end_point.y() - self.start_point.y()
+            print(f'Width: {width}, Height: {height}')
+            roi_list.append([self.start_point.x(), self.start_point.y(), width, height])
+            
+            print(f'ROI List: {roi_list}')  # Print ROI list
     def paintEvent(self, event):
         qp = QPainter(self)
         rect = event.rect()
@@ -62,7 +78,8 @@ class RCanvas(QtWidgets.QWidget):
 
     def draw_rectangle(self, qp):
         qp.setRenderHint(QPainter.Antialiasing)
-        qp.setPen(QPen(Qt.red, 3, Qt.DashLine))
+        qp.setBrush(QColor(0, 255, 0, 100))  # Fill color with transparency
+        qp.setPen(QPen(Qt.green, 3, Qt.DashLine))
         rect = QRect(self.start_point, self.end_point)
         qp.drawRect(rect)
 
@@ -72,6 +89,7 @@ class RCanvas(QtWidgets.QWidget):
             self.image = self.revisions.pop()
             self.update()
             roi_count -= 1  # Decrement ROI count
+            roi_list.pop()  # Remove the last ROI from the list
 
     def reset(self):
         global roi_count
@@ -80,10 +98,10 @@ class RCanvas(QtWidgets.QWidget):
             self.revisions.clear()
             self.update()
             roi_count = 0
+            roi_list.clear()  # Clear the ROI list
 
     def count(self):
         return self.roi_count
-
     # Add a direct_roi_count_changed method for direct signal emission
     def direct_roi_count_changed(self, count):
         print(f'Direct ROI Count Changed: {count}')
@@ -98,7 +116,6 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
         self.roi_list = []  # List to store ROIs
-        self.current_index = -1  # Index to keep track of the current state
         self.roi_data_list = []  # List to store ROI data for undo/redo
         self.table_data_list = []  # List to store table data for undo/redo
 
@@ -117,6 +134,7 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         # Use RCanvas from the edited ROI code
         self.canvas = RCanvas(QImage(), parent=self.image_page)
         image_layout.addWidget(self.canvas)
+
 
         self.stacked_widget.addWidget(self.image_page)
 
@@ -141,26 +159,61 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
 
         if file_name:
             InfoBar.success('Image uploaded successfully', 'Now please select your ROI(s)', position=InfoBarPosition.TOP,
-                            duration=3500, parent=self)
+                            duration=2500, parent=self)
             image = QImage(file_name)
+            
             image = QPixmap.fromImage(image.scaled(1000, 500, Qt.KeepAspectRatio))
-
-            self.image_page.layout().removeWidget(self.canvas)
-            self.canvas = RCanvas(image, parent=self.image_page)
-            self.image_page.layout().addWidget(self.canvas)
 
             self.command_bar = CommandBar(self)
             self.command_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
             self.command_bar.addAction(Action(FluentIcon.CANCEL, 'undo', triggered=self.undo_action))
+            
             self.command_bar.addSeparator()
             self.command_bar.addAction(Action(FluentIcon.CLEAR_SELECTION, 'clear selection', triggered=self.clear_selection))
-            self.command_bar.addWidget(TransparentDropDownPushButton('Menu', self, FluentIcon.MENU))
+            
+            menu_button = TransparentDropDownPushButton('More', self, FluentIcon.MENU)
+            self.menu = RoundMenu(self)
+            self.menu.addAction(Action(FluentIcon.CLOSE, 'Close image', triggered=self.clear_image))
+            self.menu.addAction(Action(FluentIcon.FLAG, 'Auto detect rows and columns (experimental)', triggered=self.auto_detect))
+            menu_button.setMenu(self.menu)
+            self.command_bar.addWidget(menu_button)
+            
+            
+            self.stacked_widget.setCurrentIndex(1)
+            
+            self.image_page.layout().removeWidget(self.canvas)
+            self.canvas = RCanvas(image, parent=self.image_page)
+            self.image_page.layout().addWidget(self.canvas)
+    
+        
+        
+        
             self.image_page.layout().addWidget(self.command_bar)
 
             # Center the image on the page
             self.image_page.layout().setAlignment(Qt.AlignCenter)
-            self.stacked_widget.setCurrentIndex(1)
-
+        
+    
+    def clear_image(self):
+        
+        self.roi_data_list.clear()
+        self.table_data_list.clear()
+        self.stacked_widget.setCurrentIndex(0)
+        
+        #prevent the command bar from repeating after the image is cleared
+        self.command_bar.deleteLater()
+        self.menu.deleteLater()
+        self.timer.stop()
+        
+    
+    def auto_detect(self):
+        global roi_list
+        print(f'ROI List: {roi_list} from auto detect')  # Print ROI list 
+        InfoBar.info('Auto detect rows and columns', 'This feature is still under development', position=InfoBarPosition.TOP, duration=2500, parent=self)
+        
+        pass
+    
+        
     def undo_action(self):
         self.canvas.undo()
 
@@ -188,21 +241,10 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
 
     def display_roi(self):
         global roi_count
-        print(f'ROI Count: {roi_count} from display_roi function')
+        # print(f'ROI Count: {roi_count} from display_roi function')
         # if self.canvas.image and self.canvas.pressed:
-        # Store ROI data for undo/redo
-        self.roi_data_list = self.roi_data_list[:self.current_index + 1]
-        self.roi_data_list.append(self.canvas.rect())
-        self.current_index = len(self.roi_data_list) - 1
-
-        roi_x = self.canvas.rect().x()
-        roi_y = self.canvas.rect().y()
-        roi_width = self.canvas.rect().width()
-        roi_height = self.canvas.rect().height()
-
-        print(f'Selected ROI: x={roi_x}, y={roi_y}, width={roi_width}, height={roi_height}')
-        print(f'ROI Count: {roi_count}')
-
+        
+        
         # Append table data to the list for redo
         self.table_data_list.append(self.get_table_data())
 
@@ -212,8 +254,11 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         
         # Update the table with the calculated row and column numbers
         self.table.setItem(self.table.rowCount() - 1, 0, QTableWidgetItem(str(roi_count)))
-        self.table.setItem(self.table.rowCount() - 1, 1, QTableWidgetItem(str()))  # Corrected indices
-        self.table.setItem(self.table.rowCount() - 1, 2, QTableWidgetItem(str()))  # Corrected indices
+        self.table.setItem(self.table.rowCount() - 1, 1, QTableWidgetItem(str()))  # number of rows
+        self.table.setItem(self.table.rowCount() - 1, 2, QTableWidgetItem(str()))  # number of columns
+        
+        
+        
         
         
         # Update the display of the canvas

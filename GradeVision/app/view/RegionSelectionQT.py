@@ -1,9 +1,92 @@
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 from .RegionSelectionUI_ui import Ui_Form
-from PyQt5.QtWidgets import QVBoxLayout, QStackedWidget, QLabel, QTableWidgetItem, QHBoxLayout
-from PyQt5.QtGui import QPixmap, QImage, QPainter
-from PyQt5.QtCore import Qt, QRect, QRectF
+from PyQt5.QtWidgets import QVBoxLayout, QStackedWidget, QTableWidgetItem, QShortcut
+from PyQt5.QtGui import QPixmap, QImage, QPainter, QKeySequence, QPen
+from PyQt5.QtCore import Qt, QRect, pyqtSignal
+
+# Import RCanvas from the edited ROI code
 from qfluentwidgets import PrimaryPushButton, Action, FluentIcon, TransparentDropDownPushButton, InfoBar, InfoBarPosition, CommandBar
+
+class RCanvas(QtWidgets.QWidget):
+    customSignal = pyqtSignal(int)
+
+    def __init__(self, photo, parent=None):
+        super().__init__(parent)
+        self.image = QImage(photo)
+        self.setFixedSize(self.image.width(), self.image.height())
+        self.pressed = self.moving = False
+        self.revisions = []
+        global roi_count
+        roi_count = 0  # Initialize ROI count
+
+        
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.pressed = True
+            self.start_point = event.pos()
+            self.end_point = event.pos()
+            self.update()
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() & Qt.LeftButton:
+            self.moving = True
+            self.end_point = event.pos()
+            self.update()
+
+    def mouseReleaseEvent(self, event):
+        global roi_count
+        if event.button() == Qt.LeftButton:
+            self.revisions.append(self.image.copy())
+            qp = QPainter(self.image)
+            self.draw_rectangle(qp) if self.moving else self.draw_point(qp)
+            self.pressed = self.moving = False
+            self.update()
+            roi_count += 1  # Increment ROI count
+            print(f'ROI Count: {roi_count}')  # Print ROI count
+
+            # Emit the roiCountChanged signal here
+            self.customSignal.emit(roi_count)
+
+    def paintEvent(self, event):
+        qp = QPainter(self)
+        rect = event.rect()
+        qp.drawImage(rect, self.image, rect)
+        if self.moving:
+            self.draw_rectangle(qp)
+        elif self.pressed:
+            self.draw_point(qp)
+
+    def draw_point(self, qp):
+        qp.setPen(QPen(Qt.black, 5))
+        qp.drawPoint(self.start_point)
+
+    def draw_rectangle(self, qp):
+        qp.setRenderHint(QPainter.Antialiasing)
+        qp.setPen(QPen(Qt.red, 3, Qt.DashLine))
+        rect = QRect(self.start_point, self.end_point)
+        qp.drawRect(rect)
+
+    def undo(self):
+        global roi_count
+        if self.revisions:
+            self.image = self.revisions.pop()
+            self.update()
+            roi_count -= 1  # Decrement ROI count
+
+    def reset(self):
+        global roi_count
+        if self.revisions:
+            self.image = self.revisions[0]
+            self.revisions.clear()
+            self.update()
+            roi_count = 0
+
+    def count(self):
+        return self.roi_count
+
+    # Add a direct_roi_count_changed method for direct signal emission
+    def direct_roi_count_changed(self, count):
+        print(f'Direct ROI Count Changed: {count}')
 
 class RegionSelection(QtWidgets.QWidget, Ui_Form):
     def __init__(self):
@@ -30,17 +113,28 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
 
         self.image_page = QtWidgets.QWidget(self)
         image_layout = QVBoxLayout(self.image_page)
-        hbox = QHBoxLayout(self.image_page)
-        hbox.addWidget(self.image_label, alignment=Qt.AlignCenter)
-        image_layout.addLayout(hbox)
 
-        self.image_label.mousePressEvent = self.mouse_press_event
-        self.image_label.mouseReleaseEvent = self.mouse_release_event
+        # Use RCanvas from the edited ROI code
+        self.canvas = RCanvas(QImage(), parent=self.image_page)
+        image_layout.addWidget(self.canvas)
 
         self.stacked_widget.addWidget(self.image_page)
 
         self.gridLayout.addWidget(self.stacked_widget, 0, 0, 1, 1)
 
+        # Connect undo/redo shortcuts to canvas functions
+        QShortcut(QKeySequence('Ctrl+Z'), self, self.canvas.undo)
+        QShortcut(QKeySequence('Ctrl+R'), self, self.canvas.reset)
+        # Connect roiCountChanged signal to display_roi function
+        
+        self.canvas.customSignal.connect(self.display_roi)
+        
+        # # Add a timer to periodically check the signal connection
+        self.timer = QtCore.QTimer(self)
+        self.timer.timeout.connect(self.display_roi)
+        self.timer.start(50)  # Check every 50ms
+
+    
     def upload_image_clicked(self):
         options = QtWidgets.QFileDialog.Options()
         file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Image File', '', 'Images (*.png *.jpg *.jpeg *.bmp *.tif *.tiff);;All Files (*)', options=options)
@@ -49,9 +143,11 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
             InfoBar.success('Image uploaded successfully', 'Now please select your ROI(s)', position=InfoBarPosition.TOP,
                             duration=3500, parent=self)
             image = QImage(file_name)
-            pixmap = QPixmap.fromImage(image.scaled(1000, 500, Qt.KeepAspectRatio))
+            image = QPixmap.fromImage(image.scaled(1000, 500, Qt.KeepAspectRatio))
 
-            self.image_label.setPixmap(pixmap)
+            self.image_page.layout().removeWidget(self.canvas)
+            self.canvas = RCanvas(image, parent=self.image_page)
+            self.image_page.layout().addWidget(self.canvas)
 
             self.command_bar = CommandBar(self)
             self.command_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
@@ -61,83 +157,16 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
             self.command_bar.addWidget(TransparentDropDownPushButton('Menu', self, FluentIcon.MENU))
             self.image_page.layout().addWidget(self.command_bar)
 
+            # Center the image on the page
+            self.image_page.layout().setAlignment(Qt.AlignCenter)
             self.stacked_widget.setCurrentIndex(1)
 
-    def mouse_press_event(self, event):
-        self.roi_rect = QRect(event.pos(), event.pos())
-
-    def mouse_release_event(self, event):
-        self.roi_rect.setBottomRight(event.pos())
-        self.display_roi()
-
-    def display_roi(self):
-        if self.image_label.pixmap() and self.roi_rect:
-            image_copy = self.image_label.pixmap().copy()
-            painter = QPainter(image_copy)
-            painter.setPen(Qt.red)
-
-            adjusted_roi_rect = QRectF(
-                self.roi_rect.x(),
-                self.roi_rect.y(),
-                self.roi_rect.width(),
-                self.roi_rect.height()
-            ).toRect()
-
-            painter.drawRect(adjusted_roi_rect)
-            painter.end()
-
-            self.image_label.setPixmap(image_copy.scaled(self.image_label.size()))
-
-            # Store ROI data for undo/redo
-            self.roi_data_list = self.roi_data_list[:self.current_index + 1]
-            self.roi_data_list.append(adjusted_roi_rect)
-            self.current_index = len(self.roi_data_list) - 1
-
-            roi_x = adjusted_roi_rect.x()
-            roi_y = adjusted_roi_rect.y()
-            roi_width = adjusted_roi_rect.width()
-            roi_height = adjusted_roi_rect.height()
-
-            print(f'Selected ROI: x={roi_x}, y={roi_y}, width={roi_width}, height={roi_height}')
-
-            # Append table data to the list for redo
-            self.table_data_list.append(self.get_table_data())
-
-            self.table.setRowCount(self.table.rowCount() + 1)
-            self.table.setItem(self.table.rowCount() - 1, 0, QTableWidgetItem(str(self.table.rowCount())))
-            self.table.setItem(self.table.rowCount() - 1, 1, QTableWidgetItem(str()))  # Corrected indices
-            self.table.setItem(self.table.rowCount() - 1, 2, QTableWidgetItem(str()))  # Corrected indices
-
-            self.roi_rect = None
-
     def undo_action(self):
-        if self.current_index >= 0:
-            # Remove the last ROI and corresponding table data
-            self.roi_data_list.pop()
-            self.table_data_list.pop()
-            self.table.removeRow(self.table.rowCount() - 1)
-            self.current_index = len(self.roi_data_list) - 1
-            self.update_display()
+        self.canvas.undo()
+        # print(f'roicount: {self.canvas.count()}')
 
     def redo_action(self):
-        if self.current_index < len(self.roi_data_list) - 1:
-            # Redo the last undone ROI
-            self.current_index += 1
-            self.table.clearContents()
-            self.restore_table_data(self.table_data_list[self.current_index])
-            self.display_roi()
-
-    def update_display(self):
-        if 0 <= self.current_index < len(self.roi_data_list):
-            image_copy = self.image_label.pixmap().copy()
-            painter = QPainter(image_copy)
-            painter.setPen(Qt.red)
-
-            for roi_rect in self.roi_data_list[:self.current_index + 1]:
-                painter.drawRect(roi_rect)
-
-            painter.end()
-            self.image_label.setPixmap(image_copy.scaled(self.image_label.size()))
+        self.canvas.reset()
 
     def get_table_data(self):
         table_data = []
@@ -147,14 +176,47 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         return table_data
 
     def restore_table_data(self, data):
-        self.table.setRowCount(0)
-        for row_data in data:
-            self.table.setRowCount(self.table.rowCount() + 1)
+        self.table.setRowCount(len(data))
+        for row, row_data in enumerate(data):
             for col, value in enumerate(row_data):
-                self.table.setItem(self.table.rowCount() - 1, col, QTableWidgetItem(value))
+                self.table.setItem(row, col, QTableWidgetItem(value))
 
-if __name__ == '__main__':
-    app = QtWidgets.QApplication([])
-    window = RegionSelection()
-    window.show()
-    app.exec_()
+    def update_table_with_roi(self, roi_count, row_number, column_number):
+        self.table.setRowCount(roi_count)
+        self.table.setItem(roi_count - 1, 0, QTableWidgetItem(str(roi_count)))
+        self.table.setItem(roi_count - 1, 1, QTableWidgetItem(str(row_number)))
+        self.table.setItem(roi_count - 1, 2, QTableWidgetItem(str(column_number)))
+
+    def display_roi(self):
+        global roi_count
+        print(f'ROI Count: {roi_count} from display_roi function')
+        # if self.canvas.image and self.canvas.pressed:
+        # Store ROI data for undo/redo
+        self.roi_data_list = self.roi_data_list[:self.current_index + 1]
+        self.roi_data_list.append(self.canvas.rect())
+        self.current_index = len(self.roi_data_list) - 1
+
+        roi_x = self.canvas.rect().x()
+        roi_y = self.canvas.rect().y()
+        roi_width = self.canvas.rect().width()
+        roi_height = self.canvas.rect().height()
+
+        print(f'Selected ROI: x={roi_x}, y={roi_y}, width={roi_width}, height={roi_height}')
+        print(f'ROI Count: {roi_count}')
+
+        # Append table data to the list for redo
+        self.table_data_list.append(self.get_table_data())
+
+        # Generate a new row in the table using the ROI count from RCanvas
+        self.table.setRowCount(roi_count)
+
+        
+        # Update the table with the calculated row and column numbers
+        self.table.setItem(self.table.rowCount() - 1, 0, QTableWidgetItem(str(roi_count)))
+        self.table.setItem(self.table.rowCount() - 1, 1, QTableWidgetItem(str()))  # Corrected indices
+        self.table.setItem(self.table.rowCount() - 1, 2, QTableWidgetItem(str()))  # Corrected indices
+        
+        
+        # Update the display of the canvas
+        self.canvas.update()
+        

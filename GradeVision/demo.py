@@ -35,6 +35,12 @@ if __name__ == "__main__":
     translator = FluentTranslator(locale)
     galleryTranslator = QTranslator()
     galleryTranslator.load(locale, "GradeVision", ".", ":/GradeVision/app/resource/i18n")
+    
+    # print(cfg.language)
+    
+    
+    
+    
     # print(cfg.language.value)
     app.installTranslator(translator)
     app.installTranslator(galleryTranslator)

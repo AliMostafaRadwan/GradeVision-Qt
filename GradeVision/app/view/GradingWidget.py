@@ -145,7 +145,7 @@ class GradingLogic(QObject):
         super().__init__()
         self.app = app
         self.detection = ObjectDetection()
-        self.merged_data = json.load(open('GradeVision/app/view\JSON\merged.json'))
+        self.merged_data = json.load(open('GradeVision/app/view\JSON\merged.json')) # Load the merged data
 
         # New attribute to store data
         self.grading_data = {}

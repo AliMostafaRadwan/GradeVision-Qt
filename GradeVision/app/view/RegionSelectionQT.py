@@ -8,7 +8,6 @@ from PyQt5.QtCore import Qt, QRect, pyqtSignal
 from qfluentwidgets import PrimaryPushButton, Action, FluentIcon, TransparentDropDownPushButton, InfoBar, InfoBarPosition, CommandBar, RoundMenu
 
 class RCanvas(QtWidgets.QWidget):
-    customSignal = pyqtSignal(int)
 
     def __init__(self, photo, parent=None):
         super().__init__(parent)
@@ -21,7 +20,8 @@ class RCanvas(QtWidgets.QWidget):
         
         global roi_list
         roi_list = []  # List to store ROIs
-        
+        global Not_omr
+        Not_omr = False
 
         
     def mousePressEvent(self, event):
@@ -48,11 +48,10 @@ class RCanvas(QtWidgets.QWidget):
             self.draw_rectangle(qp) if self.moving else self.draw_point(qp)
             self.pressed = self.moving = False
             self.update()
-            roi_count += 1  # Increment ROI count
-            print(f'ROI Count: {roi_count}')  # Print ROI count
+            if Not_omr == False:
+                roi_count += 1  # Increment ROI count
+                print(f'ROI Count: {roi_count}')  # Print ROI count
 
-            # Emit the roiCountChanged signal here
-            self.customSignal.emit(roi_count)
 
             
             # roi_list.append([self.start_point, self.end_point])  # Append ROI coordinates to the list
@@ -60,9 +59,12 @@ class RCanvas(QtWidgets.QWidget):
             width = self.end_point.x() - self.start_point.x()
             height = self.end_point.y() - self.start_point.y()
             print(f'Width: {width}, Height: {height}')
-            roi_list.append([self.start_point.x(), self.start_point.y(), width, height])
+            if Not_omr == False:
             
-            print(f'ROI List: {roi_list}')  # Print ROI list
+                roi_list.append([self.start_point.x(), self.start_point.y(), width, height])
+                print(f'ROI List: {roi_list}')  # Print ROI list
+    
+
     def paintEvent(self, event):
         qp = QPainter(self)
         rect = event.rect()
@@ -77,34 +79,41 @@ class RCanvas(QtWidgets.QWidget):
         qp.drawPoint(self.start_point)
 
     def draw_rectangle(self, qp):
+        
         qp.setRenderHint(QPainter.Antialiasing)
         qp.setBrush(QColor(0, 255, 0, 100))  # Fill color with transparency
         qp.setPen(QPen(Qt.green, 3, Qt.DashLine))
         rect = QRect(self.start_point, self.end_point)
         qp.drawRect(rect)
+        
+        if Not_omr:
+            qp.setBrush(QColor(255, 0, 0, 100))
+            qp.setPen(QPen(Qt.blue, 3, Qt.DashLine))
+            rect = QRect(self.start_point, self.end_point)
+            qp.drawRect(rect)
+            
 
     def undo(self):
         global roi_count
         if self.revisions:
             self.image = self.revisions.pop()
             self.update()
-            roi_count -= 1  # Decrement ROI count
-            roi_list.pop()  # Remove the last ROI from the list
+            if Not_omr == False:
+                try:
+                    roi_count -= 1  # Decrement ROI count
+                    roi_list.pop()  # Remove the last ROI from the list
+                except IndexError:
+                    roi_count = 0
+                    roi_list.clear()  # Clear the ROI list
 
     def reset(self):
-        global roi_count
         if self.revisions:
             self.image = self.revisions[0]
             self.revisions.clear()
             self.update()
-            roi_count = 0
-            roi_list.clear()  # Clear the ROI list
 
-    def count(self):
-        return self.roi_count
-    # Add a direct_roi_count_changed method for direct signal emission
-    def direct_roi_count_changed(self, count):
-        print(f'Direct ROI Count Changed: {count}')
+
+
 
 class RegionSelection(QtWidgets.QWidget, Ui_Form):
     def __init__(self):
@@ -115,8 +124,6 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         self.table.setHorizontalHeaderLabels(['ROI Number', 'Row Number', 'Column Number'])
         self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
-        self.roi_list = []  # List to store ROIs
-        self.roi_data_list = []  # List to store ROI data for undo/redo
         self.table_data_list = []  # List to store table data for undo/redo
 
         self.stacked_widget = QStackedWidget(self)
@@ -135,6 +142,12 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         self.canvas = RCanvas(QImage(), parent=self.image_page)
         image_layout.addWidget(self.canvas)
 
+        # Add a QVBoxLayout to arrange the command bar and canvas vertically
+        layout = QVBoxLayout()
+        layout.addWidget(self.canvas)
+        
+        # Set the layout for the image page
+        self.image_page.setLayout(layout)
 
         self.stacked_widget.addWidget(self.image_page)
 
@@ -143,15 +156,11 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         # Connect undo/redo shortcuts to canvas functions
         QShortcut(QKeySequence('Ctrl+Z'), self, self.canvas.undo)
         QShortcut(QKeySequence('Ctrl+R'), self, self.canvas.reset)
-        # Connect roiCountChanged signal to display_roi function
-        
-        self.canvas.customSignal.connect(self.display_roi)
-        
-        # # Add a timer to periodically check the signal connection
+
+        # Add a timer to periodically check the signal connection
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.display_roi)
         self.timer.start(50)  # Check every 50ms
-
     
     def upload_image_clicked(self):
         options = QtWidgets.QFileDialog.Options()
@@ -161,22 +170,31 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
             InfoBar.success('Image uploaded successfully', 'Now please select your ROI(s)', position=InfoBarPosition.TOP,
                             duration=2500, parent=self)
             image = QImage(file_name)
-            
             image = QPixmap.fromImage(image.scaled(1000, 500, Qt.KeepAspectRatio))
 
+            
             self.command_bar = CommandBar(self)
             self.command_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
             self.command_bar.addAction(Action(FluentIcon.CANCEL, 'undo', triggered=self.undo_action))
             
             self.command_bar.addSeparator()
             self.command_bar.addAction(Action(FluentIcon.CLEAR_SELECTION, 'clear selection', triggered=self.clear_selection))
+            #not omr button
+            self.command_bar.addSeparator()
+            self.command_bar.addAction(Action(FluentIcon.TAG, 'Not OMR', triggered=self.not_omr,checkable=True))
             
-            menu_button = TransparentDropDownPushButton('More', self, FluentIcon.MENU)
-            self.menu = RoundMenu(self)
-            self.menu.addAction(Action(FluentIcon.CLOSE, 'Close image', triggered=self.clear_image))
-            self.menu.addAction(Action(FluentIcon.FLAG, 'Auto detect rows and columns (experimental)', triggered=self.auto_detect))
-            menu_button.setMenu(self.menu)
-            self.command_bar.addWidget(menu_button)
+            self.command_bar.addAction(Action(FluentIcon.CLOSE, 'Close image', triggered=self.clear_image))
+            
+            # menu_button = TransparentDropDownPushButton('More', self, FluentIcon.MENU)
+            # self.menu = RoundMenu(self)
+            # self.menu.addAction(Action(FluentIcon.FLAG, 'Auto detect rows and columns (experimental)', triggered=self.auto_detect))
+            # menu_button.setMenu(self.menu)
+            # self.command_bar.addWidget(menu_button)
+            
+            layout = QVBoxLayout()
+            command_bar_layout = QVBoxLayout()
+            command_bar_layout.addWidget(self.command_bar)
+            layout.addLayout(command_bar_layout)
             
             
             self.stacked_widget.setCurrentIndex(1)
@@ -185,25 +203,27 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
             self.canvas = RCanvas(image, parent=self.image_page)
             self.image_page.layout().addWidget(self.canvas)
     
-        
-        
-        
+            #add the command bar to the layout
             self.image_page.layout().addWidget(self.command_bar)
-
+            
+            
             # Center the image on the page
             self.image_page.layout().setAlignment(Qt.AlignCenter)
         
     
     def clear_image(self):
+        global roi_count
+        roi_count = 0  # Reset ROI count
+        global roi_list
+        roi_list.clear()  # Clear the ROI list
         
-        self.roi_data_list.clear()
         self.table_data_list.clear()
         self.stacked_widget.setCurrentIndex(0)
         
         #prevent the command bar from repeating after the image is cleared
         self.command_bar.deleteLater()
-        self.menu.deleteLater()
-        self.timer.stop()
+        # self.menu.deleteLater()
+        # self.timer.stop()
         
     
     def auto_detect(self):
@@ -213,12 +233,22 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         
         pass
     
+    def not_omr(self, checked):
+        global Not_omr
+        Not_omr = checked
+        # print(f'Not OMR: {Not_omr}')
+    
         
     def undo_action(self):
         self.canvas.undo()
 
     def clear_selection(self):
+        global roi_count
+        roi_count = 0
+        global roi_list
+        roi_list.clear()
         self.canvas.reset()
+        
 
     def get_table_data(self):
         table_data = []
@@ -241,7 +271,7 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
 
     def display_roi(self):
         global roi_count
-        # print(f'ROI Count: {roi_count} from display_roi function')
+        print(f'ROI Count: {roi_count} from display_roi function')
         # if self.canvas.image and self.canvas.pressed:
         
         

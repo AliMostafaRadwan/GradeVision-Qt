@@ -151,7 +151,7 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
 
             self.command_bar = CommandBar(self)
             self.command_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-            self.command_bar.addAction(Action(FluentIcon.LEFT_ARROW, 'undo', triggered=self.undo_action))
+            self.command_bar.addAction(Action(FluentIcon.CANCEL, 'undo', triggered=self.undo_action))
             self.command_bar.addSeparator()
             self.command_bar.addAction(Action(FluentIcon.CLEAR_SELECTION, 'clear selection', triggered=self.clear_selection))
             self.command_bar.addWidget(TransparentDropDownPushButton('Menu', self, FluentIcon.MENU))
@@ -163,7 +163,6 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
 
     def undo_action(self):
         self.canvas.undo()
-        # print(f'roicount: {self.canvas.count()}')
 
     def clear_selection(self):
         self.canvas.reset()

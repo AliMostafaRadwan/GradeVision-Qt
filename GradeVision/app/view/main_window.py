@@ -361,7 +361,7 @@ class Window(FluentWindow):
         self.appInterface = TableWidget()
         self.videoInterface = Core()
         self.libraryInterface = CheckRes()
-        # self.settingInterface = SettingInterface(self)
+        self.settingInterface = SettingInterface(self)
         
         self.analyticsInterface = GraphWindow(parent=self)
 
@@ -375,8 +375,8 @@ class Window(FluentWindow):
         self.addSubInterface(self.analyticsInterface, FluentIcon.IOT, 'Analytics')
         self.addSubInterface(self.libraryInterface, FluentIcon.ALIGNMENT, 'Check Results', NavigationItemPosition.BOTTOM)
 
-        # self.addSubInterface(
-    # self.settingInterface, FluentIcon.SETTING, self.tr('Settings'), NavigationItemPosition.BOTTOM)
+        self.addSubInterface(
+    self.settingInterface, FluentIcon.SETTING, self.tr('Settings'), NavigationItemPosition.BOTTOM)
 
         
         self.navigationInterface.addItem(

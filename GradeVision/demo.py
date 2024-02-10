@@ -22,36 +22,32 @@ else:
 
 QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
-
 if __name__ == "__main__":
     # create application
     app = QApplication(sys.argv)
     app.setAttribute(Qt.AA_DontCreateNativeWidgetSiblings)
-    # setThemeColor('#00CDFF')
     setTheme(Theme.DARK)
     
     # internationalization
     locale = cfg.get(cfg.language).value
     translator = FluentTranslator(locale)
-    galleryTranslator = QTranslator()
-    galleryTranslator.load(locale, "GradeVision", ".", ":/GradeVision/app/resource/i18n")
-    
-    # print(cfg.language)
-    
-    
-    
-    
-    # print(cfg.language.value)
     app.installTranslator(translator)
-    app.installTranslator(galleryTranslator)
-    
+
+    # Load additional translation file
+    galleryTranslator = QTranslator()
+    translation_file_path = 'GradeVision/app/resource\i18n\gallery.ar_EG.qm'
+    if galleryTranslator.load(translation_file_path):
+        app.installTranslator(galleryTranslator)
+    else:
+        print(f"Failed to load translation file: {translation_file_path}")
+
     # create main window
     window = Window()
     window.show()
 
     # run application
-    if not app.closingDown():  # Check if the app is closed
-        with open("GradeVision/app/view\JSON/folder_path.json", "w") as f:
-            f.write(json.dumps(''))  # Clear the data in the folder_path.json
+    if not app.closingDown():
+        with open("GradeVision/app/view/JSON/folder_path.json", "w") as f:
+            f.write(json.dumps(''))
 
     sys.exit(app.exec_())

@@ -1,20 +1,23 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 from .RegionSelectionUI_ui import Ui_Form
+from .DetectCircles import detect_contours as detect_circles
 from PyQt5.QtWidgets import QVBoxLayout, QStackedWidget, QTableWidgetItem, QShortcut, QHBoxLayout
 from PyQt5.QtGui import QPixmap, QImage, QPainter, QKeySequence, QPen, QColor
 from PyQt5.QtCore import Qt, QRect, pyqtSignal
-
+import cv2
 # Import RCanvas from the edited ROI code
 from qfluentwidgets import PrimaryPushButton, Action, FluentIcon, TransparentDropDownPushButton, InfoBar, InfoBarPosition, CommandBar, RoundMenu
 
 class RCanvas(QtWidgets.QWidget):
-
+    roi_signal = pyqtSignal(int)
     def __init__(self, photo, parent=None):
         super().__init__(parent)
+        # self.setupUi(self)
         self.image = QImage(photo)
         self.setFixedSize(self.image.width(), self.image.height())
         self.pressed = self.moving = False
         self.revisions = []
+        
         global roi_count
         roi_count = 0  # Initialize ROI count
         
@@ -63,6 +66,8 @@ class RCanvas(QtWidgets.QWidget):
             
                 roi_list.append([self.start_point.x(), self.start_point.y(), width, height])
                 print(f'ROI List: {roi_list}')  # Print ROI list
+            
+            self.roi_signal.emit(roi_count)
     
 
     def paintEvent(self, event):
@@ -87,7 +92,7 @@ class RCanvas(QtWidgets.QWidget):
         qp.drawRect(rect)
         
         if Not_omr:
-            qp.setBrush(QColor(255, 0, 0, 100))
+            qp.setBrush(QColor(0, 0, 255, 100))
             qp.setPen(QPen(Qt.blue, 3, Qt.DashLine))
             rect = QRect(self.start_point, self.end_point)
             qp.drawRect(rect)
@@ -112,15 +117,25 @@ class RCanvas(QtWidgets.QWidget):
             self.revisions.clear()
             self.update()
 
-
+    def detect_circles_in_roi(self, image):
+        global roi_list
+        for roi in roi_list:
+            x, y, w, h = roi
+            detect_circles(image, x, y, w, h)
+            print(f'X: {x}, Y: {y}, W: {w}, H: {h}')
+            
+        
 
 
 class RegionSelection(QtWidgets.QWidget, Ui_Form):
+    roi_signal = pyqtSignal(int)
     def __init__(self):
         super(RegionSelection, self).__init__()
         self.setupUi(self)
+        # global roi_count
         self.table = self.TableWidget
         self.table.setColumnCount(3)
+        # self.table.setRowCount(roi_count)
         self.table.setHorizontalHeaderLabels(['ROI Number', 'Row Number', 'Column Number'])
         self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
@@ -153,17 +168,14 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
 
         self.gridLayout.addWidget(self.stacked_widget, 0, 0, 1, 1)
 
-        # Connect undo/redo shortcuts to canvas functions
-        QShortcut(QKeySequence('Ctrl+Z'), self, self.canvas.undo)
-        QShortcut(QKeySequence('Ctrl+R'), self, self.canvas.reset)
-
         # Add a timer to periodically check the signal connection
-        self.timer = QtCore.QTimer(self)
-        self.timer.timeout.connect(self.display_roi)
-        self.timer.start(50)  # Check every 50ms
+        # self.timer = QtCore.QTimer(self)
+        # self.timer.timeout.connect(self.display_roi)
+        # self.timer.start(50)  # Check every 50ms
     
     def upload_image_clicked(self):
         options = QtWidgets.QFileDialog.Options()
+        global file_name
         file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Image File', '', 'Images (*.png *.jpg *.jpeg *.bmp *.tif *.tiff);;All Files (*)', options=options)
 
         if file_name:
@@ -171,7 +183,11 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
                             duration=2500, parent=self)
             image = QImage(file_name)
             image = QPixmap.fromImage(image.scaled(1000, 500, Qt.KeepAspectRatio))
-
+            
+            global width
+            global height
+            width = image.width()
+            height = image.height()
             
             self.command_bar = CommandBar(self)
             self.command_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
@@ -184,6 +200,7 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
             self.command_bar.addAction(Action(FluentIcon.TAG, 'Not OMR', triggered=self.not_omr,checkable=True))
             
             self.command_bar.addAction(Action(FluentIcon.CLOSE, 'Close image', triggered=self.clear_image))
+            self.command_bar.addAction(Action(FluentIcon.GAME, 'Detect circles', triggered=self.detect_circles))
             
             # menu_button = TransparentDropDownPushButton('More', self, FluentIcon.MENU)
             # self.menu = RoundMenu(self)
@@ -209,8 +226,23 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
             
             # Center the image on the page
             self.image_page.layout().setAlignment(Qt.AlignCenter)
-        
-    
+            
+            self.canvas.roi_signal.connect(self.display_roi)
+
+
+
+
+
+    def detect_circles(self):
+        global file_name
+        global width
+        global height
+        img = cv2.imread(file_name, cv2.IMREAD_GRAYSCALE)
+        img = cv2.resize(img, (width, height))
+        self.canvas.detect_circles_in_roi(img)
+
+
+
     def clear_image(self):
         global roi_count
         roi_count = 0  # Reset ROI count
@@ -225,20 +257,18 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         # self.menu.deleteLater()
         # self.timer.stop()
         
-    
-    def auto_detect(self):
-        global roi_list
-        print(f'ROI List: {roi_list} from auto detect')  # Print ROI list 
-        InfoBar.info('Auto detect rows and columns', 'This feature is still under development', position=InfoBarPosition.TOP, duration=2500, parent=self)
-        
-        pass
-    
+
     def not_omr(self, checked):
         global Not_omr
         Not_omr = checked
-        # print(f'Not OMR: {Not_omr}')
+        if checked:
+            InfoBar.warning('Not OMR selected', 'The selected area will be highlighted in blue', position=InfoBarPosition.TOP,
+                            duration=2500, parent=self)
+        else:
+            InfoBar.warning('OMR selected', 'The selected area will be highlighted in green', position=InfoBarPosition.TOP,
+                            duration=2500, parent=self)
     
-        
+    
     def undo_action(self):
         self.canvas.undo()
 
@@ -248,49 +278,27 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         global roi_list
         roi_list.clear()
         self.canvas.reset()
-        
 
-    def get_table_data(self):
-        table_data = []
-        for row in range(self.table.rowCount()):
-            row_data = [self.table.item(row, col).text() for col in range(self.table.columnCount())]
-            table_data.append(row_data)
-        return table_data
 
-    def restore_table_data(self, data):
-        self.table.setRowCount(len(data))
-        for row, row_data in enumerate(data):
-            for col, value in enumerate(row_data):
-                self.table.setItem(row, col, QTableWidgetItem(value))
-
-    def update_table_with_roi(self, roi_count, row_number, column_number):
-        self.table.setRowCount(roi_count)
-        self.table.setItem(roi_count - 1, 0, QTableWidgetItem(str(roi_count)))
-        self.table.setItem(roi_count - 1, 1, QTableWidgetItem(str(row_number)))
-        self.table.setItem(roi_count - 1, 2, QTableWidgetItem(str(column_number)))
 
     def display_roi(self):
         global roi_count
-        print(f'ROI Count: {roi_count} from display_roi function')
-        # if self.canvas.image and self.canvas.pressed:
+        # global roi_list
         
-        
-        # Append table data to the list for redo
-        self.table_data_list.append(self.get_table_data())
 
         # Generate a new row in the table using the ROI count from RCanvas
         self.table.setRowCount(roi_count)
 
-        
         # Update the table with the calculated row and column numbers
         self.table.setItem(self.table.rowCount() - 1, 0, QTableWidgetItem(str(roi_count)))
         self.table.setItem(self.table.rowCount() - 1, 1, QTableWidgetItem(str()))  # number of rows
         self.table.setItem(self.table.rowCount() - 1, 2, QTableWidgetItem(str()))  # number of columns
-        
-        
-        
-        
-        
+
         # Update the display of the canvas
         self.canvas.update()
+    
+    
+    def testing(self, event):
+        print("testing", event)
         
+    

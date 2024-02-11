@@ -110,12 +110,16 @@ class RCanvas(QtWidgets.QWidget):
                 except IndexError:
                     roi_count = 0
                     roi_list.clear()  # Clear the ROI list
+            self.roi_signal.emit(roi_count)
+        
 
     def reset(self):
         if self.revisions:
             self.image = self.revisions[0]
             self.revisions.clear()
             self.update()
+            self.roi_signal.emit(roi_count)
+            
 
     def detect_circles_in_roi(self, image):
         global roi_list
@@ -248,7 +252,6 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         roi_count = 0  # Reset ROI count
         global roi_list
         roi_list.clear()  # Clear the ROI list
-        
         self.table_data_list.clear()
         self.stacked_widget.setCurrentIndex(0)
         
@@ -256,6 +259,7 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         self.command_bar.deleteLater()
         # self.menu.deleteLater()
         # self.timer.stop()
+        
         
 
     def not_omr(self, checked):
@@ -293,7 +297,9 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         self.table.setItem(self.table.rowCount() - 1, 0, QTableWidgetItem(str(roi_count)))
         self.table.setItem(self.table.rowCount() - 1, 1, QTableWidgetItem(str()))  # number of rows
         self.table.setItem(self.table.rowCount() - 1, 2, QTableWidgetItem(str()))  # number of columns
-
+        
+        
+        
         # Update the display of the canvas
         self.canvas.update()
     

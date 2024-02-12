@@ -106,7 +106,7 @@ class TableWidget(QWidget):
         new_metadata = json.load(open('GradeVision/app/view\JSON/meta.json'))
         self.tableWidget.updateData(new_metadata)
 
-        # ... [rest of your TableWidget class]
+        
 
     def saveData(self):
         # Call the save_table_data_to_json method from CustomTableWidget

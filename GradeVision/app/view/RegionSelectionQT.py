@@ -309,10 +309,23 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         self.timer = QTimer()
         self.timer.timeout.connect(self.read_table_data)
         self.timer.start(1000)  # 1 second interval
-
+        
     def read_table_data(self):
-        # Read and print table data
+        data = []
+
         for row in range(self.table.rowCount()):
+            roi_index = int(self.table.item(row, 0).text()) - 1  # Adjusting index since table index is 1-based
+            roi_values = roi_list[roi_index] if 0 <= roi_index < len(roi_list) else None
             row_text = self.table.item(row, 1).text()
             column_text = self.table.item(row, 2).text()
-            print(f"Row: {row_text}, Column: {column_text}")
+            try:
+                data.append([roi_values, int(column_text), int(row_text)])
+                print(f"ROI: {roi_values}, Row: {row_text}, Column: {column_text}")
+            except Exception as e:
+                print(f"Error occurred: {e}")
+        print(data)
+
+        # Save data to a JSON file
+        json_data = json.dumps(data)
+        with open('GradeVision/app/view\JSON\meta.json', 'w') as file:
+            file.write(json_data)

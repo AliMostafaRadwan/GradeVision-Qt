@@ -3,8 +3,9 @@ from .RegionSelectionUI_ui import Ui_Form
 from .DetectCircles import detect_contours as detect_circles
 from PyQt5.QtWidgets import QVBoxLayout, QStackedWidget, QTableWidgetItem, QShortcut, QHBoxLayout
 from PyQt5.QtGui import QPixmap, QImage, QPainter, QKeySequence, QPen, QColor
-from PyQt5.QtCore import Qt, QRect, pyqtSignal
+from PyQt5.QtCore import Qt, QRect, pyqtSignal, QTimer
 import cv2
+import json
 # Import RCanvas from the edited ROI code
 from qfluentwidgets import PrimaryPushButton, Action, FluentIcon, TransparentDropDownPushButton, InfoBar, InfoBarPosition, CommandBar, RoundMenu
 
@@ -144,7 +145,6 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         self.table.setHorizontalHeaderLabels(['ROI Number', 'Row Number', 'Column Number'])
         self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
-        self.table_data_list = []  # List to store table data for undo/redo
 
         self.stacked_widget = QStackedWidget(self)
 
@@ -253,7 +253,6 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         roi_count = 0  # Reset ROI count
         global roi_list
         roi_list.clear()  # Clear the ROI list
-        self.table_data_list.clear()
         self.stacked_widget.setCurrentIndex(0)
         
         #prevent the command bar from repeating after the image is cleared
@@ -262,7 +261,7 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         # self.timer.stop()
         
         #emit the signal to reset the ROI count
-        self.canvas.roi_signal.emit(roi_count)        
+        self.canvas.roi_signal.emit(roi_count)     
         
 
     def not_omr(self, checked):
@@ -290,24 +289,29 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
 
     def display_roi(self):
         global roi_count
-        # global roi_list
-        
+        global roi_list
 
         # Generate a new row in the table using the ROI count from RCanvas
         self.table.setRowCount(roi_count)
 
         # Update the table with the calculated row and column numbers
         self.table.setItem(self.table.rowCount() - 1, 0, QTableWidgetItem(str(roi_count)))
-        self.table.setItem(self.table.rowCount() - 1, 1, QTableWidgetItem(str()))  # number of rows
-        self.table.setItem(self.table.rowCount() - 1, 2, QTableWidgetItem(str()))  # number of columns
-        
-        
+        row_item = QTableWidgetItem(str())
+        column_item = QTableWidgetItem(str())
+        self.table.setItem(self.table.rowCount() - 1, 1, row_item)  # number of rows user will enter
+        self.table.setItem(self.table.rowCount() - 1, 2, column_item)  # number of columns user will enter
+        print(row_item.text(), column_item.text())
         
         # Update the display of the canvas
         self.canvas.update()
     
-    
-    def testing(self, event):
-        print("testing", event)
-        
-    
+        # Read table data using Timer
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.read_table_data)
+        self.timer.start(1000)  # 1 second interval
+
+    def read_table_data(self):
+        # Read and print table data
+        for row in range(self.table.rowCount()):
+            row_text = self.table.item(row, 1).text()
+            column_text = self.table.item(row, 2).text()

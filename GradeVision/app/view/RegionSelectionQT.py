@@ -315,3 +315,4 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         for row in range(self.table.rowCount()):
             row_text = self.table.item(row, 1).text()
             column_text = self.table.item(row, 2).text()
+            print(f"Row: {row_text}, Column: {column_text}")

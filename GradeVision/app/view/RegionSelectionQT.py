@@ -120,6 +120,7 @@ class RCanvas(QtWidgets.QWidget):
             self.update()
             self.roi_signal.emit(roi_count)
             
+    
 
     def detect_circles_in_roi(self, image):
         global roi_list
@@ -260,6 +261,8 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         # self.menu.deleteLater()
         # self.timer.stop()
         
+        #emit the signal to reset the ROI count
+        self.canvas.roi_signal.emit(roi_count)        
         
 
     def not_omr(self, checked):

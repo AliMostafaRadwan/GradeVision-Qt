@@ -37,34 +37,18 @@ from .setting_interface import SettingInterface
 
 
 
-class Widget(QFrame):
+# class Widget(QFrame):
 
-    def __init__(self, text: str, parent=None):
-        super().__init__(parent=parent)
-        self.label = SubtitleLabel(text, self)
-        self.hBoxLayout = QHBoxLayout(self)
+#     def __init__(self, text: str, parent=None):
+#         super().__init__(parent=parent)
+#         self.label = SubtitleLabel(text, self)
+#         self.hBoxLayout = QHBoxLayout(self)
 
-        setFont(self.label, 24)
-        self.label.setAlignment(Qt.AlignCenter)
-        self.hBoxLayout.addWidget(self.label, 1, Qt.AlignCenter)
-        self.setObjectName(text.replace(' ', '-'))
+#         setFont(self.label, 24)
+#         self.label.setAlignment(Qt.AlignCenter)
+#         self.hBoxLayout.addWidget(self.label, 1, Qt.AlignCenter)
+#         self.setObjectName(text.replace(' ', '-'))
 
-
-
-class WebView(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-        # self.setWindowTitle("My App")
-        self.webview = FramelessWebEngineView(self)
-        # WebUrl = "http://localhost:8501/"
-        WebUrl = "https://qfluentwidgets.com/"
-        self.webview.load(QUrl(WebUrl))
-        
-        self.layout = QHBoxLayout()
-        self.layout.addWidget(self.webview)
-        self.setLayout(self.layout)
-        self.setObjectName("WebView")
-        # subprocess.Popen(["streamlit", "run", "RegionSelection.py",'--server.headless','true'])
 
 
 
@@ -234,7 +218,7 @@ class FolderSelectionWidget(QWidget):
 
             # add images
             image_paths = [str(i) for i in Path(folder_path).glob('*')][:10]
-            self.flipView.addImages(image_paths)
+            self.flipView.addImages(image_paths, targetSize=QSize(1000, 1000))
             self.pager.setPageNumber(self.flipView.count())
 
             # adjust border radius

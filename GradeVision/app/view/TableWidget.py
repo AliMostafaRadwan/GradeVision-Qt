@@ -19,9 +19,12 @@ class CustomTableWidget(QWidget):
             table = QTableWidget(self)
             table.setWordWrap(True)
             table.setRowCount(num_rows)
-            print(num_rows,'rows inside table widget')
-            print(num_columns,'columns inside table widget')
+            # print(num_rows,'rows inside table widget')
+            # print(num_columns,'columns inside table widget')
             
+            #hide the index
+            table.verticalHeader().hide()
+            # table.horizontalHeader().hide()
             table.setColumnCount(1)
 
             # You should populate each table with your data here

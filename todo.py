@@ -6,4 +6,5 @@ TODO:
 - add the undo and redo to the first interface (done)
 
 - ignored for now is the auto detect bubbles (do later)
+- fix the no meta data error when starting up 
 """

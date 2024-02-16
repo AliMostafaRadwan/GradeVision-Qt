@@ -12,7 +12,6 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QFileDialog
 
 import glob
-from qframelesswindow.webengine import FramelessWebEngineView
 
 from qfluentwidgets import (FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
                             VerticalFlipView)

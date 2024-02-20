@@ -6,5 +6,11 @@ TODO:
 - add the undo and redo to the first interface (done)
 
 - ignored for now is the auto detect bubbles (do later)
-- fix the no meta data error when starting up 
+- fix the no meta data error when starting up (table widget)
+- normalize the resolution between the ROI and the grading method make it to (1000x1000)
+- fix the progress ring finish value (it stops at 95% not 100%)
+- fix the freeze when loading the model
+- make a better graphs and make it run in realtime
+- make the (not roi) analyzing methode
+- add a preparing widget (adjust the threashold of stuff)
 """

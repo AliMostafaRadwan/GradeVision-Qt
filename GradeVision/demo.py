@@ -49,6 +49,9 @@ if __name__ == "__main__":
     if not app.closingDown():
         with open("GradeVision/app/view/JSON/folder_path.json", "w") as f:
             f.write(json.dumps(''))
+        
+        with open("GradeVision/app/view/JSON/meta.json", "w") as f:
+            f.write(json.dumps([]))
 
     sys.exit(app.exec_())
     

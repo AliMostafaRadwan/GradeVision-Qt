@@ -20,7 +20,7 @@ class StartWidget(QWidget):
         # self.path = json.load(open('JSON/folder_path.json'))
         # if the path is not provided
 
-        self.initUI()
+        self.initUI() 
 
     def initUI(self):
         layout = QVBoxLayout()

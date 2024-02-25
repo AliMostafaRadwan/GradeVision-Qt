@@ -58,7 +58,8 @@ class TableWidget(QWidget):
         super().__init__()
         self.setWindowTitle("My App")
         self.layout = QVBoxLayout()
-        self.tableWidget = CustomTableWidget(metadata)  # Pass initial data from the JSON file
+        
+        self.tableWidget = CustomTableWidget(metadata) # Pass initial data from the JSON file
         self.layout.addWidget(self.tableWidget)
         self.setLayout(self.layout)
         self.setObjectName("TableInterface")
@@ -68,7 +69,7 @@ class TableWidget(QWidget):
         # Create a timer to periodically update the table data
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.updateTableData)
-        self.timer.start(2000)  # Set the update interval (in milliseconds)
+        self.timer.start(1500)  # Set the update interval (in milliseconds)
         
         
         # Initial data update
@@ -89,7 +90,7 @@ class TableWidget(QWidget):
         new_metadata = json.load(open('GradeVision/app/view\JSON/meta.json'))
         self.tableWidget.updateData(new_metadata)
 
-        
+
 
     def saveData(self):
         # Call the save_table_data_to_json method from CustomTableWidget

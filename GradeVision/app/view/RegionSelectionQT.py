@@ -35,7 +35,7 @@ class RCanvas(QtWidgets.QWidget):
             self.end_point = event.pos()
             x = self.start_point.x()
             y = self.start_point.y()
-            print(f'x: {x}, y: {y}')
+            # print(f'x: {x}, y: {y}')
             self.update()
 
     def mouseMoveEvent(self, event):
@@ -54,7 +54,7 @@ class RCanvas(QtWidgets.QWidget):
             self.update()
             if Not_omr == False:
                 roi_count += 1  # Increment ROI count
-                print(f'ROI Count: {roi_count}')  # Print ROI count
+                # print(f'ROI Count: {roi_count}')  # Print ROI count
 
 
             
@@ -62,11 +62,11 @@ class RCanvas(QtWidgets.QWidget):
             # print(f'ROI List: {roi_list}')  # Print ROI list
             width = self.end_point.x() - self.start_point.x()
             height = self.end_point.y() - self.start_point.y()
-            print(f'Width: {width}, Height: {height}')
+            # print(f'Width: {width}, Height: {height}')
             if Not_omr == False:
             
                 roi_list.append([self.start_point.x(), self.start_point.y(), width, height])
-                print(f'ROI List: {roi_list}')  # Print ROI list
+                # print(f'ROI List: {roi_list}')  # Print ROI list
             
             self.roi_signal.emit(roi_count)
     
@@ -128,7 +128,7 @@ class RCanvas(QtWidgets.QWidget):
         for roi in roi_list:
             x, y, w, h = roi
             detect_circles(image, x, y, w, h)
-            print(f'X: {x}, Y: {y}, W: {w}, H: {h}')
+            # print(f'X: {x}, Y: {y}, W: {w}, H: {h}')
             
         
 
@@ -300,7 +300,7 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         column_item = QTableWidgetItem(str())
         self.table.setItem(self.table.rowCount() - 1, 1, row_item)  # number of rows user will enter
         self.table.setItem(self.table.rowCount() - 1, 2, column_item)  # number of columns user will enter
-        print(row_item.text(), column_item.text())
+        # print(row_item.text(), column_item.text())
         
         # Update the display of the canvas
         self.canvas.update()
@@ -320,10 +320,10 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
             column_text = self.table.item(row, 2).text()
             try:
                 data.append([roi_values, int(column_text), int(row_text)])
-                print(f"ROI: {roi_values}, Row: {row_text}, Column: {column_text}")
+                # print(f"ROI: {roi_values}, Row: {row_text}, Column: {column_text}")
             except Exception as e:
                 print(f"Error occurred: {e}")
-        print(data)
+        # print(data)
 
         # Save data to a JSON file
         json_data = json.dumps(data)

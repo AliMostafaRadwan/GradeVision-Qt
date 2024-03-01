@@ -13,6 +13,8 @@ from .merges import merge_json_files
 from .Model import ObjectDetection
 import csv
 
+
+
 class StartWidget(QWidget):
     def __init__(self, stacked_widget):
         super().__init__()
@@ -22,7 +24,7 @@ class StartWidget(QWidget):
 
         self.initUI() 
 
-    def initUI(self):
+    def initUI(self): 
         layout = QVBoxLayout()
         
         self.start_button = PrimaryPushButton('Start')

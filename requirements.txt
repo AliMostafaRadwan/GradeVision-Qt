@@ -1,5 +1,11 @@
-# YOLOv5 requirements
 # Usage: pip install -r requirements.txt
+
+# GUI requirements
+pyqt5>=5.15.9
+pyqt5-tools>=5.15.9.3.3
+
+
+# DL requirements
 
 # Base ------------------------------------------------------------------------
 gitpython>=3.1.30
@@ -14,6 +20,7 @@ scipy>=1.4.1
 thop>=0.1.1  # FLOPs computation
 torch>=1.8.0  # see https://pytorch.org/get-started/locally (recommended)
 torchvision>=0.9.0
+torchaudio>=2.2.1
 tqdm>=4.64.0
 ultralytics>=8.0.232
 # protobuf<=3.20.1  # https://github.com/ultralytics/yolov5/issues/8012

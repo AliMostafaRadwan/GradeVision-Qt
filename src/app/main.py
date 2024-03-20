@@ -1,60 +1,32 @@
-# Application launching point
-
-# coding:utf-8
-import os
 import sys
-
-from PyQt5.QtCore import Qt, QTranslator
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
-from qfluentwidgets import FluentTranslator, setTheme, setThemeColor, Theme
+from qfluentwidgets import setTheme, Theme
 
-from app.common.config import cfg
-from app.view.main_window import Window
-import json
+from app.config import Config
+from app.utils import setup_internationalization, load_translations, setup_dpi_scaling
+from app.views.main_window import MainWindow
+from app.controllers.grading_controller import GradingController
 
-
-# enable dpi scale
-if cfg.get(cfg.dpiScale) == "Auto":
-    QApplication.setHighDpiScaleFactorRoundingPolicy(
-        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-else:
-    os.environ["QT_ENABLE_HIGHDPI_SCALING"] = "0"
-    os.environ["QT_SCALE_FACTOR"] = str(cfg.get(cfg.dpiScale))
-
-QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
-
-if __name__ == "__main__":
-    # create application
+def main():
     app = QApplication(sys.argv)
-    app.setAttribute(Qt.AA_DontCreateNativeWidgetSiblings)
-    setTheme(Theme.DARK)
-    
-    # internationalization
-    locale = cfg.get(cfg.language).value
-    translator = FluentTranslator(locale)
-    app.installTranslator(translator)
+    setup_application(app)
 
-    # Load additional translation file
-    galleryTranslator = QTranslator()
-    translation_file_path = 'GradeVision/app/resource\i18n\gallery.ar_EG.qm'
-    if galleryTranslator.load(translation_file_path):
-        app.installTranslator(galleryTranslator)
-    else:
-        print(f"Failed to load translation file: {translation_file_path}")
+    config = Config()
+    setup_dpi_scaling(config)
+    setup_internationalization(app, config)
+    load_translations(app)
 
-    # create main window
-    window = Window()
-    window.show()
-
-    # run application
-    if not app.closingDown():
-        with open("GradeVision/app/view/JSON/folder_path.json", "w") as f:
-            f.write(json.dumps(''))
-        
-        with open("GradeVision/app/view/JSON/meta.json", "w") as f:
-            f.write(json.dumps([]))
+    main_window = MainWindow()
+    grading_controller = GradingController(main_window)
+    main_window.show()
 
     sys.exit(app.exec_())
-    
-    
+
+def setup_application(app):
+    app.setAttribute(Qt.AA_DontCreateNativeWidgetSiblings)
+    app.setAttribute(Qt.AA_UseHighDpiPixmaps)
+    setTheme(Theme.DARK)
+
+if __name__ == "__main__":
+    main()

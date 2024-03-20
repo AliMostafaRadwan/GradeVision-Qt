@@ -38,7 +38,7 @@ class ImagePreProcessor:
 
 if __name__ == "__main__":
     folder_path = r"C:\Main\Code\GradeVision\test10"
-    image_processor = ImageProcessor(folder_path)
+    image_processor = ImagePreProcessor(folder_path)
 
     # Using the generator
     image_generator = image_processor.process_images_generator()

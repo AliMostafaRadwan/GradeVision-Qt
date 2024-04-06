@@ -382,7 +382,7 @@ class Window(FluentWindow):
         
         self.splashScreen.setIconSize(QSize(102, 102))
         self.splashScreen.show()
-        QTimer.singleShot(20, self.splashScreen.close) #2500
+        QTimer.singleShot(2500, self.splashScreen.close) #2500
 
         self.resize(1000, 750)
         self.setWindowTitle('GradVision')

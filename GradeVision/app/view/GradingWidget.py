@@ -12,7 +12,7 @@ from .AnalyzeBubbleSheet import analyze_bubble_sheet
 from .merges import merge_json_files
 from .Model import ObjectDetection
 import csv
-
+from qfluentwidgets import StateToolTip, PushButton, setTheme, Theme
 
 
 class StartWidget(QWidget):
@@ -29,7 +29,11 @@ class StartWidget(QWidget):
         
         self.start_button = PrimaryPushButton('Start')
         self.start_button.clicked.connect(self.start_button_clicked)
-
+        #read the model_status.json file to check if the model is loaded
+        
+            
+        
+            
         layout.addWidget(self.start_button, alignment=Qt.AlignCenter)
         self.setLayout(layout)
 
@@ -51,6 +55,7 @@ class StartWidget(QWidget):
 
                 return
             else:
+                
                 self.hide()
                 grading_app = GradingApp(self.path)
                 self.stacked_widget.addWidget(grading_app)
@@ -90,7 +95,17 @@ class GradingApp(QWidget, Ui_Form):
 
         self.PlainTextEdit.setReadOnly(True)
         self.CaptionLabel.setText("")
-
+        
+        
+        model_status = json.load(open('GradeVision/app/view\JSON/model_status.json'))
+        if model_status == 'loading':
+            self.stateTooltip = StateToolTip('loading', 'the model is being loaded', self)
+            self.stateTooltip.move(510, 10)
+            self.stateTooltip.show()
+        elif model_status == 'loaded':
+            self.stateTooltip = StateToolTip('loaded', 'model is loaded 😆', self)
+            self.stateTooltip.move(510, 30)
+            self.stateTooltip.show()
         
         
         

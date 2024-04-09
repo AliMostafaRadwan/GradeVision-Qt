@@ -137,7 +137,7 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
         self.table.setColumnCount(3)
         # self.table.setRowCount(roi_count)
         self.table.setHorizontalHeaderLabels(
-            ['ROI Number', 'Row Number', 'Column Number'])
+            ['ROI Number', 'Number of rows', 'Number Columns'])
         self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
         self.stacked_widget = QStackedWidget(self)

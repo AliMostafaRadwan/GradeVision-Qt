@@ -7,7 +7,7 @@ from PyQt5.QtCore import Qt, QObject, pyqtSignal, QThread
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QStackedWidget
 from PyQt5.QtGui import QPixmap, QImage
 from qfluentwidgets import PrimaryPushButton, InfoBar, InfoBarPosition,setThemeColor, setTheme, Theme
-from .GradingWidget_UI import Ui_Form
+from .GradingWidget_ui import Ui_Form
 from .AnalyzeBubbleSheet import analyze_bubble_sheet
 from .merges import merge_json_files
 from .Model import ObjectDetection

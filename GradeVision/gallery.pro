@@ -3,7 +3,7 @@ SOURCES += app/view/main_window.py \
         app/view/checkresults.py \
         app/view/grading2_ui.py \
         app/view/GradingWidget.py \
-        app/view/gradingwidget_ui.py \
+        app/view/GradingWidget_UI.py \
         app/view/Graphs.py \
         app/view/Grider.py \
         app/common/translator.py \

@@ -7,12 +7,12 @@ from PyQt5.QtCore import Qt, QObject, pyqtSignal, QThread
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QStackedWidget
 from PyQt5.QtGui import QPixmap, QImage
 from qfluentwidgets import PrimaryPushButton, InfoBar, InfoBarPosition,setThemeColor, setTheme, Theme
-from .grading2_ui import Ui_Form
+from .GradingWidget_UI import Ui_Form
 from .AnalyzeBubbleSheet import analyze_bubble_sheet
 from .merges import merge_json_files
 from .Model import ObjectDetection
 import csv
-from qfluentwidgets import StateToolTip, PushButton, setTheme, Theme
+# from qfluentwidgets import StateToolTip, PushButton, setTheme, Theme
 
 
 class StartWidget(QWidget):
@@ -95,19 +95,9 @@ class GradingApp(QWidget, Ui_Form):
 
         self.PlainTextEdit.setReadOnly(True)
         self.CaptionLabel.setText("")
-        
-        
-        model_status = json.load(open('GradeVision/app/view\JSON/model_status.json'))
-        if model_status == 'loading':
-            self.stateTooltip = StateToolTip('loading', 'the model is being loaded', self)
-            self.stateTooltip.move(510, 10)
-            self.stateTooltip.show()
-        elif model_status == 'loaded':
-            self.stateTooltip = StateToolTip('loaded', 'model is loaded 😆', self)
-            self.stateTooltip.move(510, 30)
-            self.stateTooltip.show()
-        
-        
+        # self.StateToolTip('loaded', 'the model is loaded', self)
+        # self.StateToolTip.hide()
+
         
         # Connect the output signal from GradingLogic to display in the PlainTextEdit
         self.grading_logic.output_changed.connect(self.update_output)
@@ -124,6 +114,8 @@ class GradingApp(QWidget, Ui_Form):
         self.grading_thread.start()
         self.show()
 
+        self.grading_logic.number_of_completed_work.connect(self.update_number_of_completed_work)
+
     def update_progress(self, value):
         # Update the progress ring value
         self.ProgressRing.setValue(value)
@@ -138,7 +130,10 @@ class GradingApp(QWidget, Ui_Form):
     def update_caption(self, text):
         # Update the caption text
         self.CaptionLabel.setText(text)
-
+    
+    def update_number_of_completed_work(self, value):
+        if value > 1:
+            self.StateToolTip.hide()
 
 class GradingThread(QThread):
     def __init__(self, grading_logic, path):
@@ -156,6 +151,7 @@ class GradingLogic(QObject):
     output_changed = pyqtSignal(str)
     caption_changed = pyqtSignal(str)
     roi_img_changed = pyqtSignal(object)
+    number_of_completed_work = pyqtSignal(int)
     
     
     def __init__(self, app):
@@ -260,6 +256,7 @@ class GradingLogic(QObject):
 
                 percentage_of_completed_work = (image_files.index(images) / len(image_files)) * 100
                 self.progress_changed.emit(int(percentage_of_completed_work))
+                self.number_of_completed_work.emit(image_files.index(images) + 1)
 
                 try:
                     output_text = f"Processing: {images}\nScore: {score_value}\n" \

@@ -7,7 +7,7 @@ TODO:
 
 - ignored for now is the auto detect bubbles (do later)
 - fix the no meta data error when starting up (table widget)
-- normalize the resolution between the ROI and the grading method make it to (1000x1000)
+- **normalize the resolution between the ROI and the grading method make it to (1000x1000)** (working on it)
 - fix the progress ring finish value (it stops at 95% not 100%)
 - fix the freeze when loading the model
 - make a better graphs and make it run in realtime
@@ -34,5 +34,11 @@ Action Items:
     . Develop a comprehensive business plan and timeline.
     . Prioritize the development of the core bubble sheet correction engine.
     . Recruit additional team members strategically.
+
+"""
+
+"""Notes:
+
+- the roi normalization equation gets the hight right but the width is not right, working on it (RegionSelectionQT.py line 320)
 
 """

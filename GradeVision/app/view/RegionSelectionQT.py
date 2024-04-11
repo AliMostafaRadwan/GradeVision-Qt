@@ -34,6 +34,7 @@ class RCanvas(QtWidgets.QWidget):
             self.pressed = True
             self.start_point = event.pos()
             self.end_point = event.pos()
+            
             x = self.start_point.x()
             y = self.start_point.y()
             # print(f'x: {x}, y: {y}')
@@ -189,6 +190,9 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
             global height
             width = image.width()
             height = image.height()
+            print(f'Width: {width}, Height: {height}')
+            
+
 
             self.command_bar = CommandBar(self)
             self.command_bar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
@@ -205,8 +209,8 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
 
             self.command_bar.addAction(
                 Action(FluentIcon.CLOSE, 'Close image', triggered=self.clear_image))
-            self.command_bar.addAction(
-                Action(FluentIcon.GAME, 'Detect circles', triggered=self.detect_circles))
+            # self.command_bar.addAction(
+            #     Action(FluentIcon.GAME, 'Detect circles', triggered=self.detect_circles))
 
             # menu_button = TransparentDropDownPushButton('More', self, FluentIcon.MENU)
             # self.menu = RoundMenu(self)
@@ -233,13 +237,13 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
 
             self.canvas.roi_signal.connect(self.display_roi)
 
-    def detect_circles(self):
-        global file_name
-        global width
-        global height
-        img = cv2.imread(file_name, cv2.IMREAD_GRAYSCALE)
-        img = cv2.resize(img, (width, height))
-        self.canvas.detect_circles_in_roi(img)
+    # def detect_circles(self):
+    #     global file_name
+    #     global width
+    #     global height
+    #     img = cv2.imread(file_name, cv2.IMREAD_GRAYSCALE)
+    #     img = cv2.resize(img, (width, height))
+    #     self.canvas.detect_circles_in_roi(img)
 
     def clear_image(self):
         global roi_count
@@ -313,8 +317,21 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
             row_text = self.table.item(row, 1).text()
             column_text = self.table.item(row, 2).text()
             try:
-                data.append([roi_values, int(column_text), int(row_text)])
-                # print(f"ROI: {roi_values}, Row: {row_text}, Column: {column_text}")
+                x, y, w, h = roi_values
+                
+                scaled_width, scaled_height = 1000, 1000  # Target size
+                print(f"width:{width}, height:{height} from read_table_data")
+                
+                width_scaling_factor = scaled_width / width
+                height_scaling_factor = scaled_height / height
+                adjusted_x = int(x * width_scaling_factor)
+                adjusted_y = int(y * height_scaling_factor)
+                adjusted_width = int(width * width_scaling_factor)
+                adjusted_height = int(height * height_scaling_factor)
+                
+                new_roi = [adjusted_x, adjusted_y, adjusted_width, adjusted_height]
+                data.append([new_roi, int(column_text), int(row_text)])
+                print(f"ROI: {new_roi}, Row: {row_text}, Column: {column_text}")
             except Exception as e:
                 print(f"Error occurred: {e}")
         # print(data)

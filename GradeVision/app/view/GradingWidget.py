@@ -7,7 +7,7 @@ from PyQt5.QtCore import Qt, QObject, pyqtSignal, QThread
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QStackedWidget
 from PyQt5.QtGui import QPixmap, QImage
 from qfluentwidgets import PrimaryPushButton, InfoBar, InfoBarPosition,setThemeColor, setTheme, Theme
-from .GradingWidget_ui import Ui_Form
+from .GradingWidget_UI import Ui_Form
 from .AnalyzeBubbleSheet import analyze_bubble_sheet
 from .merges import merge_json_files
 from .Model import ObjectDetection
@@ -60,6 +60,8 @@ class StartWidget(QWidget):
                 grading_app = GradingApp(self.path)
                 self.stacked_widget.addWidget(grading_app)
                 self.stacked_widget.setCurrentWidget(grading_app)
+                #merge the json files
+                merge_json_files(r'GradeVision\app\view\JSON\meta.json', r'GradeVision\app\view\JSON\output.json', r'GradeVision\app\view\JSON\merged.json')
                 break
 
 

@@ -191,7 +191,7 @@ class RegionSelection(QtWidgets.QWidget, Ui_Form):
             width = image.width()
             height = image.height()
             print(f'Width: {width}, Height: {height}')
-            
+
 
 
             self.command_bar = CommandBar(self)

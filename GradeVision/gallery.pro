@@ -3,7 +3,7 @@ SOURCES += app/view/main_window.py \
         app/view/checkresults.py \
         app/view/grading2_ui.py \
         app/view/GradingWidget.py \
-        app/view/gradingwidget_ui.py \
+        app/view/GradingWidget_UI.py \
         app/view/Graphs.py \
         app/view/Grider.py \
         app/common/translator.py \
@@ -17,4 +17,6 @@ SOURCES += app/view/main_window.py \
         app/view/test.py \
 
 TRANSLATIONS += app/resource/i18n/gallery.zh_CN.ts \
-        app/resource/i18n/gallery.zh_HK.ts
+        app/resource/i18n/gallery.zh_HK.ts \
+        app/resource/i18n/gallery.ar_EG.ts
+

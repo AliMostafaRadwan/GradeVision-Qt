@@ -7,11 +7,13 @@ from PyQt5.QtCore import Qt, QObject, pyqtSignal, QThread
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QStackedWidget
 from PyQt5.QtGui import QPixmap, QImage
 from qfluentwidgets import PrimaryPushButton, InfoBar, InfoBarPosition,setThemeColor, setTheme, Theme
-from .grading2_ui import Ui_Form
+from .GradingWidget_UI import Ui_Form
 from .AnalyzeBubbleSheet import analyze_bubble_sheet
 from .merges import merge_json_files
 from .Model import ObjectDetection
 import csv
+# from qfluentwidgets import StateToolTip, PushButton, setTheme, Theme
+
 
 class StartWidget(QWidget):
     def __init__(self, stacked_widget):
@@ -20,14 +22,18 @@ class StartWidget(QWidget):
         # self.path = json.load(open('JSON/folder_path.json'))
         # if the path is not provided
 
-        self.initUI()
+        self.initUI() 
 
-    def initUI(self):
+    def initUI(self): 
         layout = QVBoxLayout()
         
         self.start_button = PrimaryPushButton('Start')
         self.start_button.clicked.connect(self.start_button_clicked)
-
+        #read the model_status.json file to check if the model is loaded
+        
+            
+        
+            
         layout.addWidget(self.start_button, alignment=Qt.AlignCenter)
         self.setLayout(layout)
 
@@ -49,10 +55,13 @@ class StartWidget(QWidget):
 
                 return
             else:
+                
                 self.hide()
                 grading_app = GradingApp(self.path)
                 self.stacked_widget.addWidget(grading_app)
                 self.stacked_widget.setCurrentWidget(grading_app)
+                #merge the json files
+                merge_json_files(r'GradeVision\app\view\JSON\meta.json', r'GradeVision\app\view\JSON\output.json', r'GradeVision\app\view\JSON\merged.json')
                 break
 
 
@@ -88,10 +97,9 @@ class GradingApp(QWidget, Ui_Form):
 
         self.PlainTextEdit.setReadOnly(True)
         self.CaptionLabel.setText("")
+        # self.StateToolTip('loaded', 'the model is loaded', self)
+        # self.StateToolTip.hide()
 
-        
-        #make the label text black
-        self.TitleLabel.setStyleSheet("color: black;")
         
         # Connect the output signal from GradingLogic to display in the PlainTextEdit
         self.grading_logic.output_changed.connect(self.update_output)
@@ -108,6 +116,8 @@ class GradingApp(QWidget, Ui_Form):
         self.grading_thread.start()
         self.show()
 
+        self.grading_logic.number_of_completed_work.connect(self.update_number_of_completed_work)
+
     def update_progress(self, value):
         # Update the progress ring value
         self.ProgressRing.setValue(value)
@@ -122,7 +132,10 @@ class GradingApp(QWidget, Ui_Form):
     def update_caption(self, text):
         # Update the caption text
         self.CaptionLabel.setText(text)
-
+    
+    def update_number_of_completed_work(self, value):
+        if value > 1:
+            self.StateToolTip.hide()
 
 class GradingThread(QThread):
     def __init__(self, grading_logic, path):
@@ -140,13 +153,14 @@ class GradingLogic(QObject):
     output_changed = pyqtSignal(str)
     caption_changed = pyqtSignal(str)
     roi_img_changed = pyqtSignal(object)
+    number_of_completed_work = pyqtSignal(int)
     
     
     def __init__(self, app):
         super().__init__()
         self.app = app
         self.detection = ObjectDetection()
-        self.merged_data = json.load(open('GradeVision/app/view\JSON\merged.json'))
+        self.merged_data = json.load(open('GradeVision/app/view\JSON\merged.json')) # Load the merged data
 
         # New attribute to store data
         self.grading_data = {}
@@ -244,6 +258,7 @@ class GradingLogic(QObject):
 
                 percentage_of_completed_work = (image_files.index(images) / len(image_files)) * 100
                 self.progress_changed.emit(int(percentage_of_completed_work))
+                self.number_of_completed_work.emit(image_files.index(images) + 1)
 
                 try:
                     output_text = f"Processing: {images}\nScore: {score_value}\n" \

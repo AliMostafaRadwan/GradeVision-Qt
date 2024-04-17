@@ -19,6 +19,12 @@ class CustomTableWidget(QWidget):
             table = QTableWidget(self)
             table.setWordWrap(True)
             table.setRowCount(num_rows)
+            # print(num_rows,'rows inside table widget')
+            # print(num_columns,'columns inside table widget')
+            
+            #hide the index
+            table.verticalHeader().hide()
+            # table.horizontalHeader().hide()
             table.setColumnCount(1)
 
             # You should populate each table with your data here
@@ -38,6 +44,7 @@ class CustomTableWidget(QWidget):
         self.resize(935, 700)
     
     def updateData(self, new_data):
+        try:
             for i, ((x, y, width, height), num_columns, num_rows) in enumerate(new_data):
                 try:
                     table = self.tables[i]
@@ -69,6 +76,10 @@ class CustomTableWidget(QWidget):
                     table.resizeColumnsToContents()
                     self.tables.append(table)
                     self.hBoxLayout.addWidget(table)
+        except Exception as e:
+            # print('error')
+            # print(e)
+            pass
 
     
     

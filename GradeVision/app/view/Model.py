@@ -7,6 +7,9 @@ from glob import glob
 # from PIL import Image
 from pathlib import Path
 from .Grider import get_row_image
+import threading
+import json
+
 
 class ObjectDetection:
     """
@@ -15,35 +18,53 @@ class ObjectDetection:
     
     def __init__(self):
         """
-        Initializes the class with youtube url and output file.
-        :param url: Has to be as youtube URL,on which prediction is made.
-        :param out_file: A valid output file name.
+        Initializes the class.
         """
-        self.model = self.load_model()
-        self.classes = self.model.names
+        self.model_loaded_event = threading.Event()  # Create an Event object
+        self.model = None
+        self.classes = None
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        print("\n\nDevice Used:",self.device)
+        print("\n\nDevice Used:", self.device)
+        # Start a new thread to load the model to avoid freezing
+        threading.Thread(target=self.load_model_in_thread, daemon=True).start()
 
+
+    def load_model_in_thread(self):
+        """
+        Loads the model in a separate thread.
+        """
+        # wtrite in a json file the model status
+        with open("GradeVision/app/view/JSON/model_status.json", "w") as f:
+            f.write(json.dumps("loading"))
+        
+        self.model = torch.hub.load('GradeVision/app/view\yolov5', model='custom', path='GradeVision/app/view/best.pt', source='local', force_reload=True)
+        self.classes = self.model.names
+        self.model_loaded_event.set()  # Signal that the model has been loaded
+        print("Model loaded successfully.")
 
 
     def load_model(self):
-        return torch.hub.load('GradeVision/app/view\yolov5', model='custom', path='GradeVision/app/view/best.pt', source='local', force_reload=True)
-
-
+        """
+        Placeholder method to mimic the original load model behavior. Actual loading is done in load_model_in_thread.
+        """
+        if self.model is None:
+            raise ValueError("Model is not loaded yet.")
+        return self.model
 
     def score_frame(self, frame):
         """
         Takes a single frame as input, and scores the frame using yolo5 model.
-        :param frame: input frame in numpy/list/tuple format.
-        :return: Labels and Coordinates of objects detected by model in the frame.
         """
+        
+        self.model_loaded_event.wait()  # Wait for the model to be loaded
+        with open("GradeVision/app/view/JSON/model_status.json", "w") as f:
+            f.write(json.dumps("loaded"))
         self.model.to(self.device)
         frame = [frame]
         results = self.model(frame)
     
         labels, cord = results.xyxyn[0][:, -1], results.xyxyn[0][:, :-1]
         return labels, cord
-
 
     def class_to_label(self, x):
         """

@@ -12,7 +12,6 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QFileDialog
 
 import glob
-from qframelesswindow.webengine import FramelessWebEngineView
 
 from qfluentwidgets import (FlipImageDelegate, HorizontalPipsPager, HorizontalFlipView,
                             VerticalFlipView)
@@ -32,37 +31,23 @@ from .Graphs import MyChartWidget as GraphWindow
 # from .temp import GradingInterface as Ui_Form
 from .GradingWidget import StartWidget as GradingApp
 from .checkresults import CheckRes
+from .RegionSelectionQT import RegionSelection
+from .setting_interface import SettingInterface
 
 
 
-class Widget(QFrame):
+# class Widget(QFrame):
 
-    def __init__(self, text: str, parent=None):
-        super().__init__(parent=parent)
-        self.label = SubtitleLabel(text, self)
-        self.hBoxLayout = QHBoxLayout(self)
+#     def __init__(self, text: str, parent=None):
+#         super().__init__(parent=parent)
+#         self.label = SubtitleLabel(text, self)
+#         self.hBoxLayout = QHBoxLayout(self)
 
-        setFont(self.label, 24)
-        self.label.setAlignment(Qt.AlignCenter)
-        self.hBoxLayout.addWidget(self.label, 1, Qt.AlignCenter)
-        self.setObjectName(text.replace(' ', '-'))
+#         setFont(self.label, 24)
+#         self.label.setAlignment(Qt.AlignCenter)
+#         self.hBoxLayout.addWidget(self.label, 1, Qt.AlignCenter)
+#         self.setObjectName(text.replace(' ', '-'))
 
-
-
-class WebView(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-        # self.setWindowTitle("My App")
-        self.webview = FramelessWebEngineView(self)
-        # WebUrl = "http://localhost:8501/"
-        WebUrl = "https://qfluentwidgets.com/"
-        self.webview.load(QUrl(WebUrl))
-        
-        self.layout = QHBoxLayout()
-        self.layout.addWidget(self.webview)
-        self.setLayout(self.layout)
-        self.setObjectName("WebView")
-        # subprocess.Popen(["streamlit", "run", "RegionSelection.py",'--server.headless','true'])
 
 
 
@@ -73,7 +58,8 @@ class TableWidget(QWidget):
         super().__init__()
         self.setWindowTitle("My App")
         self.layout = QVBoxLayout()
-        self.tableWidget = CustomTableWidget(metadata)  # Pass initial data from the JSON file
+        
+        self.tableWidget = CustomTableWidget(metadata) # Pass initial data from the JSON file
         self.layout.addWidget(self.tableWidget)
         self.setLayout(self.layout)
         self.setObjectName("TableInterface")
@@ -83,7 +69,7 @@ class TableWidget(QWidget):
         # Create a timer to periodically update the table data
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.updateTableData)
-        self.timer.start(2000)  # Set the update interval (in milliseconds)
+        self.timer.start(1500)  # Set the update interval (in milliseconds)
         
         
         # Initial data update
@@ -104,7 +90,7 @@ class TableWidget(QWidget):
         new_metadata = json.load(open('GradeVision/app/view\JSON/meta.json'))
         self.tableWidget.updateData(new_metadata)
 
-        # ... [rest of your TableWidget class]
+
 
     def saveData(self):
         # Call the save_table_data_to_json method from CustomTableWidget
@@ -232,7 +218,7 @@ class FolderSelectionWidget(QWidget):
 
             # add images
             image_paths = [str(i) for i in Path(folder_path).glob('*')][:10]
-            self.flipView.addImages(image_paths)
+            self.flipView.addImages(image_paths, targetSize=QSize(1000, 1000))
             self.pager.setPageNumber(self.flipView.count())
 
             # adjust border radius
@@ -286,14 +272,14 @@ class Core(QWidget):
     def __init__(self):
         super().__init__()
         # setTheme(Theme.DARK)
-        self.setStyleSheet("""
-            Demo{background: white}
-            QLabel{
-                font: 20px 'Segoe UI';
-                background: rgb(242,242,242);
-                border-radius: 8px;
-            }
-        """)
+        # self.setStyleSheet("""
+        #     Demo{background: white}
+        #     QLabel{
+        #         font: 20px 'Segoe UI';
+        #         background: rgb(242,242,242);
+        #         border-radius: 8px;
+        #     }
+        # """)
         self.resize(400, 400)
         
         
@@ -355,10 +341,11 @@ class Window(FluentWindow):
         super().__init__()
         
         # create sub interface
-        self.homeInterface = Widget('Home')
+        self.homeInterface = RegionSelection()
         self.appInterface = TableWidget()
         self.videoInterface = Core()
         self.libraryInterface = CheckRes()
+        self.settingInterface = SettingInterface(self)
         
         self.analyticsInterface = GraphWindow(parent=self)
 
@@ -370,10 +357,11 @@ class Window(FluentWindow):
         self.addSubInterface(self.appInterface, FluentIcon.APPLICATION, 'Answer Key')
         self.addSubInterface(self.videoInterface, FluentIcon.VIDEO, 'Start')
         self.addSubInterface(self.analyticsInterface, FluentIcon.IOT, 'Analytics')
-        
-        
-        
-        self.addSubInterface(self.libraryInterface, FluentIcon.ALIGNMENT, 'Check Results')
+        self.addSubInterface(self.libraryInterface, FluentIcon.ALIGNMENT, 'Check Results', NavigationItemPosition.BOTTOM)
+
+        self.addSubInterface(
+    self.settingInterface, FluentIcon.SETTING, self.tr('Settings'), NavigationItemPosition.BOTTOM)
+
         
         self.navigationInterface.addItem(
             routeKey='Help',
@@ -394,7 +382,7 @@ class Window(FluentWindow):
         
         self.splashScreen.setIconSize(QSize(102, 102))
         self.splashScreen.show()
-        QTimer.singleShot(20, self.splashScreen.close) #2500
+        QTimer.singleShot(200, self.splashScreen.close) #2500
 
         self.resize(1000, 750)
         self.setWindowTitle('GradVision')
@@ -402,6 +390,7 @@ class Window(FluentWindow):
         self.setMicaEffectEnabled(True)
         desktop = QApplication.screens()[0].availableGeometry()
         w, h = desktop.width(), desktop.height()
+        print('width:', w, 'height:', h, 'window width:', self.width(), 'window height:', self.height())
         self.move(w//2 - self.width()//2, h//2 - self.height()//2)
         
         
@@ -421,14 +410,14 @@ class Window(FluentWindow):
         if w.exec():
             QDesktopServices.openUrl(QUrl("https://github.com/AliMostafaRadwan"))
 
-    setTheme(Theme.DARK)
+    # setTheme(Theme.DARK)
 
 if __name__ == '__main__':
     QApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
-    setThemeColor('#00CDFF')
+    # setThemeColor('#00CDFF')
 
     app = QApplication(sys.argv)
     w = Window()

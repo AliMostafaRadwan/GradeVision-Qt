@@ -1,3 +1,4 @@
+#THE IS THE OLD CODE IMPORTED FROM THE STREAMLIT VERSION, IM USNIG SOME CODE SNIPPETS FROM IT 
 import streamlit as st
 from PIL import Image
 from streamlit_cropper import st_cropper

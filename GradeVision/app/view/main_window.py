@@ -25,7 +25,7 @@ from qfluentwidgets import ( FluentIcon,setThemeColor,
 # from qmaterialwidgets import palette
 from qfluentwidgets import SegmentedToggleToolWidget
 
-from .TableWidget import CustomTableWidget
+from .TableWidgetTest import CustomTableWidget
 
 from .Graphs import MyChartWidget as GraphWindow
 # from .temp import GradingInterface as Ui_Form

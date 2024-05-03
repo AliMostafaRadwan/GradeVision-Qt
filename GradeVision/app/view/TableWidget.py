@@ -3,6 +3,7 @@ import json
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QVBoxLayout, QWidget,QHBoxLayout,QHeaderView,QLabel
 from qfluentwidgets import TableWidget as QTableWidget
+from qfluentwidgets import PillPushButton
 
 
 class CustomTableWidget(QWidget):
@@ -101,25 +102,24 @@ class CustomTableWidget(QWidget):
         with open(file_name, 'w') as json_file:
             json.dump(all_tables_data, json_file, indent=4)
 
-# metadata = [
-#     [(0, 0, 300, 200), 1, 3],
-#     [(0, 0, 300, 200), 1, 3],
-#     [(0, 0, 300, 200), 1, 3],
-#     [(0, 0, 300, 200), 1, 3],
-#     [(0, 0, 300, 200), 1, 3],
-#     [(0, 0, 300, 200), 1, 3],
-#     [(0, 0, 300, 200), 1, 3],
-#     [(0, 0, 300, 200), 1, 3],
-#     [(0, 0, 300, 200), 1, 3],
-# ]
 
-# def main():
-#     app = QApplication(sys.argv)
-#     window = QMainWindow()
-#     table_widget = CustomTableWidget(metadata)
-#     window.setCentralWidget(table_widget)
-#     window.show()
-#     sys.exit(app.exec_())
 
-# if __name__ == "__main__":
-#     main()
+
+metadata = [
+    [(0, 0, 300, 200), 1, 3],
+    [(0, 0, 300, 200), 1, 3],
+    [(0, 0, 300, 200), 1, 8],
+    [(0, 0, 300, 200), 1, 3],
+
+]
+
+def main():
+    app = QApplication(sys.argv)
+    window = QMainWindow()
+    table_widget = CustomTableWidget(metadata)
+    window.setCentralWidget(table_widget)
+    window.show()
+    sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()

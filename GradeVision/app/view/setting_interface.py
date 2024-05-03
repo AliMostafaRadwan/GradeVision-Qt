@@ -21,6 +21,9 @@ class SettingInterface(ScrollArea):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         
+        #style sheet red font color
+        self.setStyleSheet("SettingInterface{color: red}")
+        
         
         
         self.scrollWidget = QWidget()

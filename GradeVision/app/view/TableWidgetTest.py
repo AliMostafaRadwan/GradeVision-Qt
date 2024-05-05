@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QVBoxLa
 from qfluentwidgets import TableWidget as QTableWidget
 from qfluentwidgets import Pivot
 from .TableWidgetTest_ui import Ui_Form
-from .temp import Demo
+from .Answer_Key_Config import AnswerKeyConfigs
+
 class CustomTableWidget(QWidget, Ui_Form):
 
     
@@ -47,7 +48,7 @@ class CustomTableWidget(QWidget, Ui_Form):
         self.resize(935, 700)
         
         #adding the demo widget to the second card widget
-        self.demo = Demo()
+        self.demo = AnswerKeyConfigs()
         self.CardWidget_2.layout().addWidget(self.demo)
         self.demo.show()
         self.demo.setStyleSheet("Demo{background: rgb(249, 249, 249)} ")

@@ -3,15 +3,17 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QApplication,
     QWidget,
-    QVBoxLayout,)
+    QVBoxLayout,
+)
 from PyQt5.QtChart import (
     QBarSet,
     QBarSeries,
     QLineSeries,
     QChart,
     QBarCategoryAxis,
-    QChartView,)
-
+    QChartView,
+    QValueAxis
+)
 from PyQt5.QtCore import Qt, QPointF
 from PyQt5.QtGui import QPainter, QPen, QColor
 import csv
@@ -42,25 +44,42 @@ class MyChartWidget(QWidget):
         series.append(correct_answers_set)
         series.append(wrong_answers_set)
 
-        chart = QChart()
-        chart.addSeries(series)
-        chart.setTitle("Correct vs Wrong Answers")
-        chart.setAnimationOptions(QChart.SeriesAnimations)
+        chart1 = QChart()
+        chart1.addSeries(series)
+        chart1.setTitle("Correct vs Wrong Answers")
+        chart1.setAnimationOptions(QChart.SeriesAnimations)
+
+        # Set chart title color
+        chart1.setTitleBrush(QColor("white"))
 
         # Use only the image name (text after the last slash) as the key
         categories = [re.search(r'[^\\]+$', image).group() for image in self.grading_data.keys()]
-       
-        axis = QBarCategoryAxis()
-        axis.append(categories)
-        chart.createDefaultAxes()
-        chart.setAxisX(axis, series)
 
-        chart.legend().setVisible(True)
-        chart.legend().setAlignment(Qt.AlignBottom)
+        axisX = QBarCategoryAxis()
+        axisX.append(categories)
+        axisY = QValueAxis()
 
-        chartView = QChartView(chart)
-        chartView.setRenderHint(QPainter.Antialiasing)
-        self.layout.addWidget(chartView)
+        # Set axis label colors
+        axisX.setLabelsBrush(QColor("white"))
+        axisY.setLabelsBrush(QColor("white"))
+
+        chart1.addAxis(axisX, Qt.AlignBottom)
+        chart1.addAxis(axisY, Qt.AlignLeft)
+        series.attachAxis(axisX)
+        series.attachAxis(axisY)
+
+        chart1.legend().setVisible(True)
+        chart1.legend().setAlignment(Qt.AlignBottom)
+        chart1.legend().setLabelBrush(QColor("white"))
+
+        # Set chart background to transparent
+        chart1.setBackgroundBrush(Qt.transparent)
+        chart1.setPlotAreaBackgroundBrush(Qt.transparent)
+
+        chartView1 = QChartView(chart1)
+        chartView1.setRenderHint(QPainter.Antialiasing)
+        chartView1.setStyleSheet("background: transparent")
+        self.layout.addWidget(chartView1)
 
         # Create second chart (Line Chart)
         line_series = QLineSeries(self)
@@ -70,20 +89,38 @@ class MyChartWidget(QWidget):
             processing_time = data_entry['Processing Time']
             line_series.append(QPointF(categories.index(re.search(r'[^\\]+$', image).group()) + 1, processing_time))
 
-        chart = QChart()
-        chart.addSeries(line_series)
-        chart.createDefaultAxes()
-        chart.setAnimationOptions(QChart.SeriesAnimations)
-        chart.setTitle("Processing Time per Image")
+        chart2 = QChart()
+        chart2.addSeries(line_series)
+        chart2.createDefaultAxes()
+        chart2.setAnimationOptions(QChart.SeriesAnimations)
+        chart2.setTitle("Processing Time per Image")
+        chart2.setTitleBrush(QColor("white"))
 
-        chart.legend().setVisible(True)
-        chart.legend().setAlignment(Qt.AlignBottom)
+        chart2.legend().setVisible(True)
+        chart2.legend().setAlignment(Qt.AlignBottom)
+        chart2.legend().setLabelBrush(QColor("white"))
         # Line thickness
         line_series.setPen(QPen(QColor("purple"), 4))
 
-        chartView = QChartView(chart)
-        chartView.setRenderHint(QPainter.Antialiasing)
-        self.layout.addWidget(chartView)
+        axisX2 = QBarCategoryAxis()
+        axisX2.append(categories)
+        axisY2 = QValueAxis()
+
+        # Set axis label colors
+        axisX2.setLabelsBrush(QColor("white"))
+        axisY2.setLabelsBrush(QColor("white"))
+
+        chart2.setAxisX(axisX2, line_series)
+        chart2.setAxisY(axisY2, line_series)
+
+        # Set chart background to transparent
+        chart2.setBackgroundBrush(Qt.transparent)
+        chart2.setPlotAreaBackgroundBrush(Qt.transparent)
+
+        chartView2 = QChartView(chart2)
+        chartView2.setRenderHint(QPainter.Antialiasing)
+        chartView2.setStyleSheet("background: transparent")
+        self.layout.addWidget(chartView2)
 
         self.setLayout(self.layout)
         self.setObjectName("graphWindow")
@@ -93,7 +130,7 @@ class MyChartWidget(QWidget):
         self.grading_data = defaultdict(dict)
 
         try:
-            with open('GradeVision/app/view\grading_data.csv', 'r') as csvfile:
+            with open('GradeVision/app/view/grading_data.csv', 'r') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
                     image = row['Image']
